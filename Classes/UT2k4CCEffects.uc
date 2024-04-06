@@ -331,11 +331,15 @@ function Pawn findRandomPawn()
 
 function RemoveAllAmmoFromPawn(Pawn p)
 {
-	local Inventory Inv;
-	for( Inv=p.Inventory; Inv!=None; Inv=Inv.Inventory ) {
-		if ( Ammunition(Inv) != None ) {
-			Ammunition(Inv).AmmoAmount = 0;
-        }   
+    local Inventory Inv;
+    for( Inv=p.Inventory; Inv!=None; Inv=Inv.Inventory ) {
+        PlayerController(p.Controller).ClientMessage("Inventory "$Inv);
+        if ( Ammunition(Inv) != None ) {
+            Ammunition(Inv).AmmoAmount = 0;
+        } else if (Weapon(Inv)!=None){
+            Weapon(Inv).AmmoCharge[0]=0;
+            Weapon(Inv).AmmoCharge[1]=0;
+        }
     }      
 }
 
@@ -366,16 +370,7 @@ function bool IsWeaponRemovable(Weapon w)
     if (w==None){
         return False;
     }
-    switch(w.Class){
-        //case class'Translocator':
-        //case class'ImpactHammer':
-        //case class'Enforcer':
-        //case class'DoubleEnforcer':
-        //case class'ChainSaw':
-        //    return False;
-        default:
-            return True;
-    }
+    return w.bCanThrow;
 }
 
 function class<Weapon> GetWeaponClassByName(String weaponName)
@@ -383,41 +378,36 @@ function class<Weapon> GetWeaponClassByName(String weaponName)
     local class<Weapon> weaponClass;
     
     switch(weaponName){
-/*
-        case "translocator":
-            weaponClass = class'Translocator';
-            break;
-        case "ripper":
-            weaponClass = class'Ripper';
-            break;
-        case "WarHeadLauncher":
-            weaponClass = class'WarHeadLauncher';
+        case "supershockrifle":
+            weaponClass = class'SuperShockRifle';
             break;
         case "biorifle":
-            weaponClass = class'UT_BioRifle';
+            weaponClass = class'BioRifle';
             break;
         case "flakcannon":
-            weaponClass = class'UT_FlakCannon';
+            weaponClass = class'FlakCannon';
             break;
-        case "sniperrifle":
-            weaponClass = class'SniperRifle';
+        case "linkgun":
+            weaponClass = class'LinkGun';
+            break;
+        case "minigun":
+            weaponClass = class'Minigun';
+            break;
+        case "redeemer":
+            weaponClass = class'Redeemer';
+            break;
+        case "rocketlauncher":
+            weaponClass = class'RocketLauncher';
             break;
         case "shockrifle":
             weaponClass = class'ShockRifle';
             break;
-        case "pulsegun":
-            weaponClass = class'PulseGun';
+        case "lightninggun":
+            weaponClass = class'SniperRifle';
             break;
-        case "minigun":
-            weaponClass = class'Minigun2';
+        case "translocator":
+            weaponClass = class'Translauncher';
             break;
-        case "rocketlauncher":
-            weaponClass = class'UT_EightBall';
-            break;
-        case "SuperShockRifle":
-            weaponClass = class'SuperShockRifle';
-            break;
-*/
         default:
             break;
     }
@@ -1299,14 +1289,14 @@ function int doCrowdControlEvent(string code, string param[5], string viewer, in
             return SuddenDeath(viewer);
         case "full_heal":  //Everyone gets brought up to 100 health (not brought down if overhealed though)
             return FullHeal(viewer);
-        case "full_armour": //Everyone gets a shield belt
-            return FullArmour(viewer); 
+        //case "full_armour": //Everyone gets a shield belt
+        //    return FullArmour(viewer); //TODO: Figure out the shield belt or equivalent
         case "give_health": //Give an arbitrary amount of health.  Allows overhealing, up to 199
             return GiveHealth(viewer,Int(param[0]));
         case "third_person":  //Switches to behind view for everyone
             return ThirdPerson(viewer,duration);
-        case "bonus_dmg":   //Gives everyone a damage bonus item (triple damage)
-            return GiveDamageItem(viewer);
+        //case "bonus_dmg":   //Gives everyone a damage bonus item (triple damage)
+        //    return GiveDamageItem(viewer); //TODO: Figure out bonus damage item
         case "gotta_go_fast":  //Makes everyone really fast for a minute
             return GottaGoFast(viewer, duration);
         case "gotta_go_slow":  //Makes everyone really slow for 15 seconds (A minute was too much!)
@@ -1314,12 +1304,11 @@ function int doCrowdControlEvent(string code, string param[5], string viewer, in
         case "thanos":  //Every player has a 50% chance of being killed
             return ThanosSnap(viewer);
         case "swap_player_position":  //Picks two random players and swaps their positions
-            //return swapPlayer(viewer); //Just swaps two players
             return SwapAllPlayers(viewer); //Swaps ALL players
         case "no_ammo":  //Removes all ammo from all players
-            return NoAmmo(viewer);
-        case "give_ammo":  //Gives X boxes of a particular ammo type to all players
-            return giveAmmo(viewer,param[0],Int(param[1]));
+            return NoAmmo(viewer); 
+        //case "give_ammo":  //Gives X boxes of a particular ammo type to all players
+        //    return giveAmmo(viewer,param[0],Int(param[1]));  //TODO: Will need to figure out best way to handle ammo stuff
         case "nudge":  //All players get nudged slightly in a random direction
             return doNudge(viewer);
         case "drop_selected_item":  //Destroys the currently equipped weapon (Except for melee, translocator, and enforcers)
@@ -1327,31 +1316,31 @@ function int doCrowdControlEvent(string code, string param[5], string viewer, in
         case "give_weapon":  //Gives all players a specific weapon
             return GiveWeapon(viewer,param[0]);
         case "give_instagib":  //This is separate so that it can be priced differently
-            return GiveWeapon(viewer,"SuperShockRifle");
+            return GiveWeapon(viewer,"supershockrifle");
         case "give_redeemer":  //This is separate so that it can be priced differently
-            return GiveWeapon(viewer,"WarHeadLauncher");
+            return GiveWeapon(viewer,"redeemer");
         case "melee_only": //Force everyone to use melee for the duration (continuously check weapon and switch to melee choice)
             return StartMeleeOnlyTime(viewer,duration);
-        case "last_place_shield": //Give last place player a shield belt
-            return LastPlaceShield(viewer);
-        case "last_place_bonus_dmg": //Give last place player a bonus damage item
-            return LastPlaceDamage(viewer);
+        //case "last_place_shield": //Give last place player a shield belt
+        //    return LastPlaceShield(viewer); //TODO: Will need to figure out if there's a shield belt equivalent, or what the best way to handle this is
+        //case "last_place_bonus_dmg": //Give last place player a bonus damage item
+        //    return LastPlaceDamage(viewer);  //TODO: Figure out the bonus damage item
         case "first_place_slow": //Make the first place player really slow   
             return FirstPlaceSlow(viewer, duration);
         case "blue_redeemer_shell": //Blow up first place player
             return BlueRedeemerShell(viewer);
-        case "vampire_mode":  //Inflicting damage heals you for the damage dealt (Can grab damage via MutatorTakeDamage)
-            return StartVampireMode(viewer, duration);
+        //case "vampire_mode":  //Inflicting damage heals you for the damage dealt (Can grab damage via MutatorTakeDamage)
+        //    return StartVampireMode(viewer, duration);  //TODO: Will need to make a GameRules and apply it to the game for the duration of this effect
         case "force_weapon_use": //Give everybody a weapon, then force them to use it for the duration.  Ammo tops up if run out  
-            return ForceWeaponUse(viewer,param[0],duration);        
+            return ForceWeaponUse(viewer,param[0],duration);
         case "force_instagib": //Give everybody an enhanced shock rifle, then force them to use it for the duration.  Ammo tops up if run out  
-            return ForceWeaponUse(viewer,"SuperShockRifle",duration);        
+            return ForceWeaponUse(viewer,"supershockrifle",duration);
         case "force_redeemer": //Give everybody a redeemer, then force them to use it for the duration.  Ammo tops up if run out  
-            return ForceWeaponUse(viewer,"WarHeadLauncher",duration);
-        case "reset_domination_control_points":
-            return ResetDominationControlPoints(viewer);
-        case "return_ctf_flags":
-            return ReturnCTFFlags(viewer);        
+            return ForceWeaponUse(viewer,"redeemer",duration);
+        //case "reset_domination_control_points":
+        //    return ResetDominationControlPoints(viewer); //TODO: Need to test
+        //case "return_ctf_flags":
+        //    return ReturnCTFFlags(viewer); //TODO: Need to test
         default:
             Broadcast("Got Crowd Control Effect -   code: "$code$"   viewer: "$viewer );
             break;
