@@ -688,16 +688,15 @@ function int FullHeal(string viewer)
 
 }
 
-//Shield Belt for everybody!
 function int FullArmour(string viewer)
 {
     local Pawn p;
     
     foreach AllActors(class'Pawn',p) {
-        //GiveInventoryToPawn(class'UT_ShieldBelt',p);
+        p.AddShieldStrength(150);
     }
    
-    Broadcast(viewer$" has given everyone a shield belt!");
+    Broadcast(viewer$" has given everyone full armour!");
    
     return Success;
 }
@@ -747,7 +746,7 @@ function int GiveDamageItem(String viewer)
     local Pawn p;
     
     foreach AllActors(class'Pawn',p) {
-        //GiveInventoryToPawn(class'UDamage',p);
+        p.EnableUDamage(30);
     }
     
     Broadcast(viewer$" gave everyone a damage powerup!");
@@ -1072,8 +1071,9 @@ function int LastPlaceShield(String viewer)
     
     //Actually give them the shield belt
     //GiveInventoryToPawn(class'UT_ShieldBelt',p);
+    p.AddShieldStrength(150);
 
-    Broadcast(viewer@"gave a Shield Belt to "$p.PlayerReplicationInfo.PlayerName$", who is in last place!");
+    Broadcast(viewer@"gave full armour to "$p.PlayerReplicationInfo.PlayerName$", who is in last place!");
 
     return Success;
 }
@@ -1089,6 +1089,7 @@ function int LastPlaceDamage(String viewer)
     
     //Actually give them the damage bonus
     //GiveInventoryToPawn(class'UDamage',p);
+    p.EnableUDamage(30);
     
     Broadcast(viewer@"gave a Damage Amplifier to "$p.PlayerReplicationInfo.PlayerName$", who is in last place!");
 
@@ -1289,14 +1290,14 @@ function int doCrowdControlEvent(string code, string param[5], string viewer, in
             return SuddenDeath(viewer);
         case "full_heal":  //Everyone gets brought up to 100 health (not brought down if overhealed though)
             return FullHeal(viewer);
-        //case "full_armour": //Everyone gets a shield belt
-        //    return FullArmour(viewer); //TODO: Figure out the shield belt or equivalent
+        case "full_armour": //Everyone gets a shield belt
+            return FullArmour(viewer);
         case "give_health": //Give an arbitrary amount of health.  Allows overhealing, up to 199
             return GiveHealth(viewer,Int(param[0]));
         case "third_person":  //Switches to behind view for everyone
             return ThirdPerson(viewer,duration);
-        //case "bonus_dmg":   //Gives everyone a damage bonus item (triple damage)
-        //    return GiveDamageItem(viewer); //TODO: Figure out bonus damage item
+        case "bonus_dmg":   //Gives everyone a damage bonus item (triple damage)
+            return GiveDamageItem(viewer);
         case "gotta_go_fast":  //Makes everyone really fast for a minute
             return GottaGoFast(viewer, duration);
         case "gotta_go_slow":  //Makes everyone really slow for 15 seconds (A minute was too much!)
@@ -1321,10 +1322,10 @@ function int doCrowdControlEvent(string code, string param[5], string viewer, in
             return GiveWeapon(viewer,"redeemer");
         case "melee_only": //Force everyone to use melee for the duration (continuously check weapon and switch to melee choice)
             return StartMeleeOnlyTime(viewer,duration);
-        //case "last_place_shield": //Give last place player a shield belt
-        //    return LastPlaceShield(viewer); //TODO: Will need to figure out if there's a shield belt equivalent, or what the best way to handle this is
-        //case "last_place_bonus_dmg": //Give last place player a bonus damage item
-        //    return LastPlaceDamage(viewer);  //TODO: Figure out the bonus damage item
+        case "last_place_shield": //Give last place player a shield belt
+            return LastPlaceShield(viewer);
+        case "last_place_bonus_dmg": //Give last place player a bonus damage item
+            return LastPlaceDamage(viewer);
         case "first_place_slow": //Make the first place player really slow   
             return FirstPlaceSlow(viewer, duration);
         case "blue_redeemer_shell": //Blow up first place player
