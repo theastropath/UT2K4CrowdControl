@@ -1235,10 +1235,10 @@ function int ResetDominationControlPoints(String viewer)
     }
     
     foreach AllActors(class'DominationPoint', cp) {
-        if (cp.ControllingTeam!=None){
+        if (cp.ControllingTeam!=None && cp.bControllable && cp.enabled){
             //Level.Game.Broadcast(self,"Control Point controlled by "$cp.ControllingTeam.TeamName);
             resetAny=True;
-            cp.Reset();
+            cp.ResetPoint(true);
         //} else {
             //Level.Game.Broadcast(self,"Control Point controlled by nobody");
         }
@@ -1266,6 +1266,8 @@ function int ReturnCTFFlags(String viewer)
     
     foreach AllActors(class'CTFFlag', flag){
         if (flag.bHome==False){
+            //A quick glance at the CTFFlag code suggests this may need to call Drop first
+            //Since the "Held" state appears to ignore SendHome
             flag.SendHome();
             resetAny=True;
         }
@@ -1283,7 +1285,13 @@ function int ReturnCTFFlags(String viewer)
 ////                                  CROWD CONTROL EFFECT MAPPING                                       ////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
+//Effects missing that were in UT99
+//Full Fat
+//Skin and Bones
+//Ice Physics
+//Low Grav
+//Flood
+//Spawn a bot (attack/defend)
 function int doCrowdControlEvent(string code, string param[5], string viewer, int type, int duration) {
     switch(code) {
         case "sudden_death":  //Everyone loses all armour and goes down to one health
