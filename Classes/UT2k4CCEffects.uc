@@ -67,21 +67,20 @@ function Init(Mutator baseMut)
 
 function SendCCMessage(string msg)
 {
-    //local PlayerController p;
+    local PlayerController p;
     local color c;
     
     c.R=0;
     c.G=255;
     c.B=0;
 
-/*    
+
     foreach AllActors(class'PlayerController',p){
         p.ClearProgressMessages();
         p.SetProgressTime(4);
-        p.SetProgressColor(c,0);
-        p.SetProgressMessage(msg,0);
+        p.SetProgressMessage(0,msg,c);
     }
-*/
+
 }
 
 function Broadcast(string msg)

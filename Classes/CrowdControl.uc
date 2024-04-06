@@ -2,7 +2,9 @@ class CrowdControl extends Mutator config(CrowdControl);
 
 var bool initialized;
 var UT2k4CrowdControlLink ccLink;
+var UT2k4CCHUDOverlay hudOverlay;
 var config string crowd_control_addr;
+
 
 function InitCC()
 {
@@ -37,42 +39,19 @@ simulated function PreBeginPlay()
 {
    initialized = False;
    InitCC();
-   CheckServerPackages();
-
 }
-
-function CheckServerPackages()
-{
-    local string packages;
-
-    if (Level.NetMode!=NM_DedicatedServer && Level.NetMode!=NM_ListenServer){
-        //Not hosting a server, don't worry about it
-        return;
-    }
-
-    packages=ConsoleCommand("get Engine.GameEngine ServerPackages");
-    if (InStr(packages,"UT2k4CrowdControl")!=-1){
-        log("UT2k4CrowdControl is set in ServerPackages!  Nice!");
-    } else {
-        log("UT2k4CrowdControl is not set in ServerPackages!  Bummer!");
-        packages = Left(packages,Len(packages)-1)$",\"UT2k4CrowdControl\")";
-        log("Added UT2k4CrowdControl to ServerPackages!");
-        ConsoleCommand("set Engine.GameEngine ServerPackages "$packages);
-
-        //Reload the level so that the serverpackages gets updated for real
-        log("Restarting game so that ServerPackages are reloaded");
-        Level.ServerTravel( "?Restart", false );
-    }
-}
-
 
 function ModifyPlayer(Pawn Other)
 {
-   //if (Other.PlayerReplicationInfo != None)
-   //   Level.Game.Broadcast(self,"The player"@Other.PlayerReplicationInfo.PlayerName@"respawned!");
-
-   if (NextMutator != None)
-      NextMutator.ModifyPlayer(Other);
+    //I bet this doesn't work in multiplayer
+    if (PlayerController(Other.Controller)!=None){
+        if (hudOverlay==None){
+            hudOverlay=Spawn(class'UT2k4CCHUDOverlay');
+        }
+        PlayerController(Other.Controller).myHUD.AddHudOverlay(hudOverlay);
+    }    
+    if (NextMutator != None)
+        NextMutator.ModifyPlayer(Other);
 }
 
 //Changes both here and in link class, as well as saves the config
@@ -215,4 +194,7 @@ function Mutate (string MutateString, PlayerController Sender)
 
 defaultproperties
 {
+    bAddToServerPackages=True
+    FriendlyName="Crowd Control"
+    Description="Let viewers mess with your game by sending effects!"
 }

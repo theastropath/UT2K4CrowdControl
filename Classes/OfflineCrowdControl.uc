@@ -50,7 +50,6 @@ simulated function PreBeginPlay()
 {
    initialized = False;
    InitCC();
-   CheckServerPackages();
 }
 
 function Timer() {
@@ -163,32 +162,6 @@ function int RandomOfflineEffects()
     
     return 0;
 }
-
-//Pretty sure there's a way to do this natively in this version of the game
-function CheckServerPackages()
-{
-    local string packages;
-
-    if (Level.NetMode!=NM_DedicatedServer && Level.NetMode!=NM_ListenServer){
-        //Not hosting a server, don't worry about it
-        return;
-    }
-
-    packages=ConsoleCommand("get Engine.GameEngine ServerPackages");
-    if (InStr(packages,"UT2k4CrowdControl")!=-1){
-        log("UT2k4CrowdControl is set in ServerPackages!  Nice!");
-    } else {
-        log("UT2k4CrowdControl is not set in ServerPackages!  Bummer!");
-        packages = Left(packages,Len(packages)-1)$",\"UT2k4CrowdControl\")";
-        log("Added UT2k4CrowdControl to ServerPackages!");
-        ConsoleCommand("set Engine.GameEngine ServerPackages "$packages);
-
-        //Reload the level so that the serverpackages gets updated for real
-        log("Restarting game so that ServerPackages are reloaded");
-        Level.ServerTravel( "?Restart", false );
-    }
-}
-
 
 function ModifyPlayer(Pawn Other)
 {
@@ -608,6 +581,9 @@ static function EffectConfig GetEffectInfo(int i)
 
 defaultproperties
 {
+    bAddToServerPackages=True
+    FriendlyName="Simulated Crowd Control"
+    Description="Randomly send Crowd Control effects without any viewers!"
     defaultMutatorName="Simulated Crowd Control"
     effectFrequency=1
     effectChance=0.05
