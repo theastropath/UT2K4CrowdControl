@@ -1225,7 +1225,7 @@ function int ForceWeaponUse(String viewer, String weaponName, int duration)
 function int ResetDominationControlPoints(String viewer)
 {
     local xDoubleDom game;
-    local DominationPoint cp;
+    local xDomPoint cp;
     local bool resetAny;
 
     game = xDoubleDom(Level.Game);
@@ -1234,8 +1234,8 @@ function int ResetDominationControlPoints(String viewer)
         return TempFail;
     }
     
-    foreach AllActors(class'DominationPoint', cp) {
-        if (cp.ControllingTeam!=None && cp.bControllable && cp.enabled){
+    foreach AllActors(class'xDomPoint', cp) {
+        if (cp.ControllingTeam!=None && cp.bControllable){
             //Level.Game.Broadcast(self,"Control Point controlled by "$cp.ControllingTeam.TeamName);
             resetAny=True;
             cp.ResetPoint(true);
@@ -1266,8 +1266,9 @@ function int ReturnCTFFlags(String viewer)
     
     foreach AllActors(class'CTFFlag', flag){
         if (flag.bHome==False){
-            //A quick glance at the CTFFlag code suggests this may need to call Drop first
+            //This needs to call Drop first
             //Since the "Held" state appears to ignore SendHome
+            flag.Drop(vect(0,0,0)); //In case it's being held
             flag.SendHome();
             resetAny=True;
         }
@@ -1339,17 +1340,17 @@ function int doCrowdControlEvent(string code, string param[5], string viewer, in
         case "blue_redeemer_shell": //Blow up first place player
             return BlueRedeemerShell(viewer);
         //case "vampire_mode":  //Inflicting damage heals you for the damage dealt (Can grab damage via MutatorTakeDamage)
-        //    return StartVampireMode(viewer, duration);  //TODO: Will need to make a GameRules and apply it to the game for the duration of this effect
+        //    return StartVampireMode(viewer, duration);  //TODO: Will need to make a GameRules (or use a pre-existing one from the vampire mutator?) and apply it to the game for the duration of this effect
         case "force_weapon_use": //Give everybody a weapon, then force them to use it for the duration.  Ammo tops up if run out  
             return ForceWeaponUse(viewer,param[0],duration);
         case "force_instagib": //Give everybody an enhanced shock rifle, then force them to use it for the duration.  Ammo tops up if run out  
             return ForceWeaponUse(viewer,"supershockrifle",duration);
         case "force_redeemer": //Give everybody a redeemer, then force them to use it for the duration.  Ammo tops up if run out  
             return ForceWeaponUse(viewer,"redeemer",duration);
-        //case "reset_domination_control_points":
-        //    return ResetDominationControlPoints(viewer); //TODO: Need to test
-        //case "return_ctf_flags":
-        //    return ReturnCTFFlags(viewer); //TODO: Need to test
+        case "reset_domination_control_points":
+            return ResetDominationControlPoints(viewer);
+        case "return_ctf_flags":
+            return ReturnCTFFlags(viewer);
         default:
             Broadcast("Got Crowd Control Effect -   code: "$code$"   viewer: "$viewer );
             break;
