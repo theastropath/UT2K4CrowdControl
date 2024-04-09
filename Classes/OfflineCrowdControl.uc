@@ -79,31 +79,27 @@ function String PickRandomName(){
 }
 
 function String PickRandomAmmo(){
-    switch(Rand(9)){
-        case(0): return "flakammo";
+    switch(Rand(6)){
+        case(0): return "assaultammo";
         case(1): return "bioammo";
-        case(2): return "warheadammo";
-        case(3): return "pammo";
-        case(4): return "shockcore";
-        case(5): return "bladehopper";
-        case(6): return "rocketpack";
-        case(7): return "bulletbox";
-        case(8): return "miniammo";
+        case(2): return "flakammo";
+        case(3): return "linkammo";
+        case(4): return "minigunammo";
+        case(5): return "sniperammo";
     }
     return "";
 }
 
 function String PickRandomWeapon(){
-    switch(Rand(9)){
-        case(0): return "translocator";
-        case(1): return "ripper";
-        case(2): return "biorifle";
-        case(3): return "flakcannon";
-        case(4): return "sniperrifle";
+    switch(Rand(8)){
+        case(0): return "biorifle";
+        case(1): return "flakcannon";
+        case(2): return "linkgun";
+        case(3): return "minigun";
+        case(4): return "rocketlauncher";
         case(5): return "shockrifle";
-        case(6): return "pulsegun";
-        case(7): return "minigun";
-        case(8): return "rocketlauncher";
+        case(6): return "lightninggun";
+        case(7): return "translocator";
     }
     return "";
 }
@@ -598,38 +594,44 @@ defaultproperties
     effects(0)=(EffectName="sudden_death",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
     effects(1)=(EffectName="full_heal",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
     effects(2)=(EffectName="full_armour",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
-    effects(3)=(EffectName="give_health",quantityMin=1,quantityMax=25,durationMin=0,durationMax=0,enabled=true)
-    effects(4)=(EffectName="third_person",quantityMin=0,quantityMax=0,durationMin=5,durationMax=45,enabled=true)
-    effects(5)=(EffectName="bonus_dmg",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
-    effects(6)=(EffectName="full_fat",quantityMin=0,quantityMax=0,durationMin=5,durationMax=120,enabled=true)
-    effects(7)=(EffectName="skin_and_bones",quantityMin=0,quantityMax=0,durationMin=5,durationMax=120,enabled=true)
-    effects(8)=(EffectName="gotta_go_fast",quantityMin=0,quantityMax=0,durationMin=5,durationMax=60,enabled=true)
-    effects(9)=(EffectName="gotta_go_slow",quantityMin=0,quantityMax=0,durationMin=5,durationMax=30,enabled=true)
-    effects(10)=(EffectName="thanos",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
-    effects(11)=(EffectName="swap_player_position",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
-    effects(12)=(EffectName="no_ammo",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
-    effects(13)=(EffectName="give_ammo",quantityMin=1,quantityMax=3,durationMin=0,durationMax=0,enabled=true)
-    effects(14)=(EffectName="nudge",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
-    effects(15)=(EffectName="drop_selected_item",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
-    effects(16)=(EffectName="give_weapon",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
-    effects(17)=(EffectName="give_instagib",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
-    effects(18)=(EffectName="give_redeemer",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
-    effects(19)=(EffectName="ice_physics",quantityMin=0,quantityMax=0,durationMin=10,durationMax=60,enabled=true)
-    effects(20)=(EffectName="low_grav",quantityMin=0,quantityMax=0,durationMin=10,durationMax=60,enabled=true)
-    effects(21)=(EffectName="melee_only",quantityMin=0,quantityMax=0,durationMin=15,durationMax=60,enabled=true)
-    effects(22)=(EffectName="flood",quantityMin=0,quantityMax=0,durationMin=10,durationMax=60,enabled=true)
-    effects(23)=(EffectName="last_place_shield",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
-    effects(24)=(EffectName="last_place_bonus_dmg",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
-    effects(25)=(EffectName="first_place_slow",quantityMin=0,quantityMax=0,durationMin=5,durationMax=30,enabled=true)
-    effects(26)=(EffectName="blue_redeemer_shell",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
-    effects(27)=(EffectName="spawn_a_bot_attack",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
-    effects(28)=(EffectName="spawn_a_bot_defend",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
-    effects(29)=(EffectName="vampire_mode",quantityMin=0,quantityMax=0,durationMin=15,durationMax=120,enabled=true)
-    effects(30)=(EffectName="force_weapon_use",quantityMin=0,quantityMax=0,durationMin=15,durationMax=60,enabled=true)
-    effects(31)=(EffectName="force_instagib",quantityMin=0,quantityMax=0,durationMin=20,durationMax=120,enabled=true)
-    effects(32)=(EffectName="force_redeemer",quantityMin=0,quantityMax=0,durationMin=10,durationMax=30,enabled=true)
-    effects(33)=(EffectName="reset_domination_control_points",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
-    effects(34)=(EffectName="return_ctf_flags",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
+    effects(3)=(EffectName="full_adrenaline",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
+    effects(4)=(EffectName="give_health",quantityMin=1,quantityMax=25,durationMin=0,durationMax=0,enabled=true)
+    effects(5)=(EffectName="third_person",quantityMin=0,quantityMax=0,durationMin=5,durationMax=45,enabled=true)
+    effects(6)=(EffectName="bonus_dmg",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
+    effects(7)=(EffectName="gotta_go_fast",quantityMin=0,quantityMax=0,durationMin=5,durationMax=60,enabled=true)
+    effects(8)=(EffectName="gotta_go_slow",quantityMin=0,quantityMax=0,durationMin=5,durationMax=30,enabled=true)
+    effects(9)=(EffectName="thanos",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
+    effects(10)=(EffectName="swap_player_position",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
+    effects(11)=(EffectName="no_ammo",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
+    effects(12)=(EffectName="give_ammo",quantityMin=1,quantityMax=3,durationMin=0,durationMax=0,enabled=true)
+    effects(13)=(EffectName="nudge",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
+    effects(14)=(EffectName="drop_selected_item",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
+    effects(15)=(EffectName="give_weapon",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
+    effects(16)=(EffectName="give_instagib",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
+    effects(17)=(EffectName="give_redeemer",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
+    effects(18)=(EffectName="melee_only",quantityMin=0,quantityMax=0,durationMin=15,durationMax=60,enabled=true)
+    effects(19)=(EffectName="last_place_shield",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
+    effects(20)=(EffectName="last_place_bonus_dmg",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
+    effects(21)=(EffectName="first_place_slow",quantityMin=0,quantityMax=0,durationMin=5,durationMax=30,enabled=true)
+    effects(22)=(EffectName="blue_redeemer_shell",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
+    effects(23)=(EffectName="vampire_mode",quantityMin=0,quantityMax=0,durationMin=15,durationMax=120,enabled=true)
+    effects(24)=(EffectName="force_weapon_use",quantityMin=0,quantityMax=0,durationMin=15,durationMax=60,enabled=true)
+    effects(25)=(EffectName="force_instagib",quantityMin=0,quantityMax=0,durationMin=20,durationMax=120,enabled=true)
+    effects(26)=(EffectName="force_redeemer",quantityMin=0,quantityMax=0,durationMin=10,durationMax=30,enabled=true)
+    effects(27)=(EffectName="reset_domination_control_points",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
+    effects(28)=(EffectName="return_ctf_flags",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
+    effects(29)=(EffectName="big_head",quantityMin=0,quantityMax=0,durationMin=5,durationMax=120,enabled=true)
+    effects(30)=(EffectName="headless",quantityMin=0,quantityMax=0,durationMin=5,durationMax=120,enabled=true)
+    effects(31)=(EffectName="limbless",quantityMin=0,quantityMax=0,durationMin=5,durationMax=120,enabled=true)
+    effects(32)=(EffectName="full_fat",quantityMin=0,quantityMax=0,durationMin=5,durationMax=120,enabled=true)
+    effects(33)=(EffectName="skin_and_bones",quantityMin=0,quantityMax=0,durationMin=5,durationMax=120,enabled=true)
+    effects(34)=(EffectName="low_grav",quantityMin=0,quantityMax=0,durationMin=10,durationMax=60,enabled=true)
+    effects(35)=(EffectName="ice_physics",quantityMin=0,quantityMax=0,durationMin=10,durationMax=60,enabled=true)
+    effects(36)=(EffectName="flood",quantityMin=0,quantityMax=0,durationMin=10,durationMax=60,enabled=true)
+    effects(37)=(EffectName="last_place_ultra_adrenaline",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
+    effects(38)=(EffectName="all_berserk",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
+    effects(39)=(EffectName="all_invisible",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
+    effects(40)=(EffectName="all_regen",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
     botNames(0)="Jim"
     botNames(1)="James"
     botNames(2)="Jeremy"

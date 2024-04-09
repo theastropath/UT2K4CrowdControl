@@ -112,5 +112,11 @@ public class UnrealTournament2004 : SimpleTCPPack
         new Effect("Melee Only!", "melee_only") { Category = "Weapons & Damage", Price = 10, Description = "Never mind these guns, it's punching time!", Duration=60 },
         new Effect("Bonus Damage for Last Place", "last_place_bonus_dmg") { Category = "Weapons & Damage", Price = 5, Description = "Help out the last place player and grant them bonus damage!" },
         new Effect("All Players Drop Current Weapon", "drop_selected_item") { Category = "Weapons & Damage", Price = 10, Description = "Who needs this weapon anyway..." }
+
+        new Effect("Full Adrenaline", "full_adrenaline") { Category = "Adrenaline & Combos", Price = 2, Description = "Max out all players adrenaline!" },
+        new Effect("Ultra Adrenaline Powers for Last Place", "last_place_ultra_adrenaline") { Category = "Adrenaline & Combos", Price = 10, Description = "The player in last place gains all of the adrenaline powers at once!" }
+        new Effect("Invisible Players", "all_invisible") { Category = "Adrenaline & Combos", Price = 5, Description = "All players become temporarily invisible!" }
+        new Effect("Berserker!", "all_berserk") { Category = "Adrenaline & Combos", Price = 5, Description = "All players become berserk temporarily!" }
+        new Effect("All Players Regenerate", "all_regen") { Category = "Adrenaline & Combos", Price = 5, Description = "All players begin to regenerate health temporarily!" }
     };
 }

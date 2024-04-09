@@ -1048,7 +1048,6 @@ function int FullHeal(string viewer)
     Broadcast("Everyone has been fully healed by "$viewer$"!");
   
     return Success;
-
 }
 
 function int FullArmour(string viewer)
@@ -1060,6 +1059,22 @@ function int FullArmour(string viewer)
     }
    
     Broadcast(viewer$" has given everyone full armour!");
+   
+    return Success;
+}
+
+function int FullAdrenaline(string viewer)
+{
+    local Controller c;
+    
+    foreach AllActors(class'Controller',c) {
+        if (c.bAdrenalineEnabled==False){
+            return TempFail;
+        }
+        c.Adrenaline=c.AdrenalineMax;
+    }
+   
+    Broadcast(viewer$" has given everyone full adrenaline!");
    
     return Success;
 }
@@ -1455,9 +1470,88 @@ function int LastPlaceDamage(String viewer)
     Broadcast(viewer@"gave a Damage Amplifier to "$p.PlayerReplicationInfo.PlayerName$", who is in last place!");
 
     return Success;
-
-
 }
+
+function int LastPlaceUltraAdrenaline(String viewer)
+{
+    local Pawn p;
+
+
+    p = findPawnByScore(False,255); //Get lowest score player
+    if (p == None) {
+        return TempFail;
+    }
+
+    if (p.Controller.bAdrenalineEnabled==False){
+        return TempFail;
+    }
+
+    if (p.PlayerReplicationInfo.PlayerName==""){
+        return TempFail;
+    }
+    
+    p.Controller.Adrenaline=p.Controller.AdrenalineMax;
+    Spawn(class'XGame.ComboSpeed',p);    
+    Spawn(class'XGame.ComboBerserk',p);    
+    Spawn(class'XGame.ComboDefensive',p);    
+    Spawn(class'XGame.ComboInvis',p);    
+
+    Broadcast(viewer@"triggered all adrenaline combos for "$p.PlayerReplicationInfo.PlayerName$", who is in last place!");
+
+    return Success;
+}
+
+function int AllPlayersBerserk(string viewer)
+{
+    local Pawn p;
+    
+    foreach AllActors(class'Pawn',p) {
+        if (p.Controller.bAdrenalineEnabled==False){
+            return TempFail;
+        }
+        p.Controller.Adrenaline=p.Controller.AdrenalineMax;
+        Spawn(class'XGame.ComboBerserk',p);
+    }
+   
+    Broadcast(viewer$" has made everyone berserk!");
+   
+    return Success;
+}
+
+function int AllPlayersInvisible(string viewer)
+{
+    local Pawn p;
+    
+    foreach AllActors(class'Pawn',p) {
+        if (p.Controller.bAdrenalineEnabled==False){
+            return TempFail;
+        }
+        p.Controller.Adrenaline=p.Controller.AdrenalineMax;
+        Spawn(class'XGame.ComboInvis',p);
+    }
+   
+    Broadcast(viewer$" has made everyone invisible!");
+   
+    return Success;
+}
+
+function int AllPlayersRegen(string viewer)
+{
+    local Pawn p;
+    
+    foreach AllActors(class'Pawn',p) {
+        if (p.Controller.bAdrenalineEnabled==False){
+            return TempFail;
+        }
+        p.Controller.Adrenaline=p.Controller.AdrenalineMax;
+        Spawn(class'XGame.ComboDefensive',p);
+    }
+   
+    Broadcast(viewer$" has made everyone regenerate!");
+   
+    return Success;
+}
+
 
 function int FirstPlaceSlow(String viewer, int duration)
 {
@@ -1857,6 +1951,8 @@ function int doCrowdControlEvent(string code, string param[5], string viewer, in
             return FullHeal(viewer);
         case "full_armour": //Everyone gets a shield belt
             return FullArmour(viewer);
+        case "full_adrenaline":
+            return FullAdrenaline(viewer);
         case "give_health": //Give an arbitrary amount of health.  Allows overhealing, up to 199
             return GiveHealth(viewer,Int(param[0]));
         case "third_person":  //Switches to behind view for everyone
@@ -1923,6 +2019,14 @@ function int doCrowdControlEvent(string code, string param[5], string viewer, in
             return EnableIcePhysics(viewer, duration);
         case "flood":
             return StartFlood(viewer, duration);
+        case "last_place_ultra_adrenaline":
+            return LastPlaceUltraAdrenaline(viewer);
+        case "all_berserk":
+            return AllPlayersBerserk(viewer);
+        case "all_invisible":
+            return AllPlayersInvisible(viewer);
+        case "all_regen":
+            return AllPlayersRegen(viewer);
         default:
             Broadcast("Got Crowd Control Effect -   code: "$code$"   viewer: "$viewer );
             break;
