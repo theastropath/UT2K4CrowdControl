@@ -41,6 +41,19 @@ simulated function PreBeginPlay()
    InitCC();
 }
 
+//This really makes sure the old CCLink is gone, since it seems like it used to kind of persist (despite being transient)
+//which prevented the client from sending messages to the right one
+function ServerTraveling(string URL, bool bItems)
+{
+    if (ccLink!=None){
+        ccLink.Close();
+        ccLink.Destroy();
+        ccLink=None;
+    }
+    if (NextMutator != None)
+        NextMutator.ServerTraveling(URL,bItems);
+}
+
 function ModifyPlayer(Pawn Other)
 {
     //I bet this doesn't work in multiplayer
