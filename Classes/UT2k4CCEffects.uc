@@ -527,8 +527,26 @@ function class<Ammunition> GetAmmoClassByName(String ammoName)
     local class<Ammunition> ammoClass;
     
     switch(ammoName){
+        case "assaultammo":
+            ammoClass = class'AssaultAmmo';
+            break;
+        case "bioammo":
+            ammoClass = class'BioAmmo';
+            break;
         case "flakammo":
             ammoClass = class'FlakAmmo';
+            break;
+        case "linkammo":
+            ammoClass = class'LinkAmmo';
+            break;
+        case "minigunammo":
+            ammoClass = class'MinigunAmmo';
+            break;
+        case "shockammo":
+            ammoClass = class'ShockAmmo';
+            break;
+        case "sniperammo":
+            ammoClass = class'SniperAmmo';
             break;
         default:
             break;
@@ -1287,28 +1305,26 @@ function int NoAmmo(String viewer)
 function int GiveAmmo(String viewer, String ammoName, int amount)
 {
     local class<Ammunition> ammoClass;
-    local Pawn p;
-    local Inventory inv;
-    local Ammunition amm;
+    local Weapon w;
+    local int i;
+    local bool added;
     
     ammoClass = GetAmmoClassByName(ammoName);
     
-    foreach AllActors(class'Pawn',p) {
-        inv = p.FindInventoryType(ammoClass);
-        
-        if (inv == None) {
-            inv = Spawn(ammoClass);
-            amm = Ammunition(inv);
-            AddItemToPawnInventory(p,inv);
-            
-            if (amount > 1) {
-                amm.AddAmmo((amount-1)*amm.Default.AmmoAmount);    
+    added=False;
+    foreach AllActors(class'Weapon',w) {
+        if (w.Owner==None) continue;
+        for (i=0;i<=1;i++){
+            if (w.AmmoClass[i]==ammoClass){
+                if (w.AddAmmo(ammoClass.Default.InitialAmount * amount,i)){
+                    added=True;
+                }
             }
-            
-        } else {
-            amm = Ammunition(inv);
-            amm.AddAmmo(amount*amm.Default.AmmoAmount);  //Add the equivalent of picking up that many boxes
         }
+    }
+
+    if (!added){
+        return TempFail;
     }
     
     Broadcast(viewer$" gave everybody some ammo! ("$ammoClass.default.ItemName$")");
@@ -1857,8 +1873,8 @@ function int doCrowdControlEvent(string code, string param[5], string viewer, in
             return SwapAllPlayers(viewer); //Swaps ALL players
         case "no_ammo":  //Removes all ammo from all players
             return NoAmmo(viewer); 
-        //case "give_ammo":  //Gives X boxes of a particular ammo type to all players
-        //    return giveAmmo(viewer,param[0],Int(param[1]));  //TODO: Will need to figure out best way to handle ammo stuff
+        case "give_ammo":  //Gives X boxes of a particular ammo type to all players
+            return giveAmmo(viewer,param[0],Int(param[1]));
         case "nudge":  //All players get nudged slightly in a random direction
             return doNudge(viewer);
         case "drop_selected_item":  //Destroys the currently equipped weapon (Except for melee, translocator, and enforcers)

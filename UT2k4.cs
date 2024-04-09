@@ -12,34 +12,32 @@ public class UnrealTournament2004 : SimpleTCPPack
 
     public override ISimpleTCPPack.MessageFormat MessageFormat => ISimpleTCPPack.MessageFormat.CrowdControlLegacy;
 
-    public UnrealTournament99(UserRecord player, Func<CrowdControlBlock, bool> responseHandler, Action<object> statusUpdateHandler) : base(player, responseHandler, statusUpdateHandler) { }
+    public UnrealTournament2004(UserRecord player, Func<CrowdControlBlock, bool> responseHandler, Action<object> statusUpdateHandler) : base(player, responseHandler, statusUpdateHandler) { }
 
     public override Game Game { get; } = new(999, "Unreal Tournament 2004", "UnrealTournament2004", "PC", ConnectorType.SimpleTCPConnector);
 
     //Weapon list
     private static readonly ParameterDef weaponList = new("Weapons", "weapons",
         new Parameter("Translocator", "translocator"),
-        new Parameter("Ripper", "ripper"),
         new Parameter("BioRifle", "biorifle"),
         new Parameter("Flak Cannon", "flakcannon"),
-        new Parameter("Sniper Rifle", "sniperrifle"),
+        new Parameter("Lightning Gun", "lightninggun"),
         new Parameter("Shock Rifle", "shockrifle"),
-        new Parameter("Pulse Rifle", "pulsegun"),
+        new Parameter("Link Gun", "linkgun"),
         new Parameter("Minigun", "minigun"),
         new Parameter("Rocket Launcher", "rocketlauncher")
     );
 
     //Ammo List
     private static readonly ParameterDef ammoList = new("Ammo", "ammo",
-        new Parameter("Flak Ammo", "flakammo"),
-        new Parameter("BioRifle Goo", "bioammo"),
-        new Parameter("Redeemer Missile", "warheadammo"),
-        new Parameter("Pulse Rifle Ammo", "pammo"),
-        new Parameter("Shock Rifle Core", "shockcore"),
-        new Parameter("Ripper Blades", "bladehopper"),
-        new Parameter("Rockets", "rocketpack"),
-        new Parameter("Sniper Ammo", "bulletbox"),
-        new Parameter("Minigun/Enforcer Ammo", "miniammo")
+        new Parameter("Assault Rifle Bullets", "assaultammo"),
+        new Parameter("Bio-Rifle Goop", "bioammo"),
+        new Parameter("Flak Shells", "flakammo"),
+        new Parameter("Link Ammo", "linkammo"),
+        new Parameter("Minigun Bullets", "minigunammo"),
+        new Parameter("Rockets", "rocketammo"),
+        new Parameter("Shock Core", "shockammo"),
+        new Parameter("Lightning Charges", "sniperammo"),
     );
 
     public override EffectList Effects { get; } = new Effect[]
@@ -56,8 +54,8 @@ public class UnrealTournament2004 : SimpleTCPPack
         new Effect("Low Gravity", "low_grav"){Price = 5, Description = "Low gravity means players jump higher!", Duration=60},
         new Effect("Flood the Arena", "flood"){Price = 10, Description = "Flood the arena!", Duration=20},
         new Effect("Slow First Place Player", "first_place_slow"){Price = 5, Description = "The first place player is too good, let's punish them!", Duration=45},
-        new Effect("Spawn an Attacking Bot (One Death)", "spawn_a_bot_attack"){Price = 10, Description = "This will spawn a bot on whatever team has the least amount of players and will be on the offensive"},
-        new Effect("Spawn a Defending Bot (One Death)", "spawn_a_bot_defend"){Price = 10, Description = "This will spawn a bot on whatever team is has the least amount of players with orders to defend their base"},
+        //new Effect("Spawn an Attacking Bot (One Death)", "spawn_a_bot_attack"){Price = 10, Description = "This will spawn a bot on whatever team has the least amount of players and will be on the offensive"},
+        //new Effect("Spawn a Defending Bot (One Death)", "spawn_a_bot_defend"){Price = 10, Description = "This will spawn a bot on whatever team is has the least amount of players with orders to defend their base"},
         new Effect("Reset Domination Control Points", "reset_domination_control_points"){Price = 5, Description = "This will reset all control points in Domination Mode to neutral"},
         new Effect("Return Flags", "return_ctf_flags"){Price = 5, Description = "In Capture the Flag Mode, this will return all flags to their base"},
         
