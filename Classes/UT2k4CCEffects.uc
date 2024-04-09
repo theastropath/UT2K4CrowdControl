@@ -18,7 +18,6 @@ const SingleSlowTimerDefault = 45;
 var int meleeTimer;
 const MeleeTimerDefault = 60;
 
-
 var int vampireTimer;
 const VampireTimerDefault = 60;
 
@@ -47,6 +46,37 @@ enum EBodyEffect
 };
 var EBodyEffect bodyEffect;
 
+struct ZoneFriction
+{
+    var name zonename;
+    var float friction;
+};
+var ZoneFriction zone_frictions[32];
+const IceFriction = 0.25;
+const NormalFriction = 8;
+var int iceTimer;
+const IceTimerDefault = 60;
+
+struct ZoneGravity
+{
+    var name zonename;
+    var vector gravity;
+};
+var ZoneGravity zone_gravities[32];
+var vector NormalGravity;
+var vector MoonGrav;
+var int gravityTimer;
+const GravityTimerDefault = 60;
+
+struct ZoneWater
+{
+    var name zonename;
+    var bool water;
+};
+var ZoneWater zone_waters[32];
+var int floodTimer;
+const FloodTimerDefault = 15;
+
 var int cfgMinPlayers;
 
 var bool bFat,bFast;
@@ -55,7 +85,7 @@ var string targetPlayer;
 replication
 {
     reliable if ( Role == ROLE_Authority )
-        behindTimer,speedTimer,meleeTimer,vampireTimer,forceWeaponTimer,bFat,bFast,forcedWeapon,numAddedBots,targetPlayer,GetEffectList;
+        behindTimer,speedTimer,meleeTimer,iceTimer,vampireTimer,floodTimer,forceWeaponTimer,bFat,bFast,forcedWeapon,numAddedBots,targetPlayer,GetEffectList,bodyEffectTimer,bodyEffect,gravityTimer;
 }
 
 function Init(Mutator baseMut)
@@ -67,9 +97,9 @@ function Init(Mutator baseMut)
     
     baseMutator = baseMut;
     
-    //NormalGravity=vect(0,0,-950);
+    NormalGravity=class'PhysicsVolume'.Default.Gravity;
     //FloatGrav=vect(0,0,0.15);
-    //MoonGrav=vect(0,0,-100);  
+    MoonGrav=vect(0,0,-100);  
     
     for (i=0;i<MaxAddedBots;i++){
         added_bots[i]=None;
@@ -131,6 +161,18 @@ simulated function GetEffectList(out string effects[15], out int numEffects)
         effects[i]="Melee-Only: "$meleeTimer;
         i++;
     }
+    if (gravityTimer > 0) {
+        effects[i]="Low-Grav: "$gravityTimer;
+        i++;
+    }
+    if (iceTimer > 0) {
+        effects[i]="Ice Physics: "$iceTimer;
+        i++;
+    }
+    if (floodTimer > 0) {
+        effects[i]="Flood: "$floodTimer;
+        i++;
+    }
     if (vampireTimer > 0) {
         effects[i]="Vampire: "$vampireTimer;
         i++;
@@ -183,13 +225,28 @@ function PeriodicUpdates()
             Broadcast("Returning to normal move speed...");
         }
     }  
+    if (iceTimer > 0) {
+        iceTimer--;
+        if (iceTimer <= 0) {
+            SetIcePhysics(False);
+            Broadcast("The ground thaws...");
+        }
+    } 
     if (meleeTimer > 0) {
         meleeTimer--;
         if (meleeTimer <= 0) {
             Broadcast("You may use ranged weapons again...");
         }
     }  
+    if (floodTimer > 0) {
+        floodTimer--;
+        if (floodTimer <= 0) {
+            SetFlood(False);
+            UpdateAllPawnsSwimState();
 
+            Broadcast("The flood drains away...");
+        }
+    } 
     if (vampireTimer > 0) {
         vampireTimer--;
         if (vampireTimer <= 0) {
@@ -213,7 +270,13 @@ function PeriodicUpdates()
             BodyEffect = BE_None;
         }
     }  
-
+    if (gravityTimer > 0) {
+        gravityTimer--;
+        if (gravityTimer <= 0) {
+            SetMoonPhysics(False);
+            Broadcast("Gravity returns to normal...");
+        }
+    }  
     
 
 }
@@ -300,6 +363,76 @@ function ModifyPlayer(Pawn Other)
 ////                               CROWD CONTROL UTILITY FUNCTIONS                                       ////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+function vector GetDefaultZoneGravity(PhysicsVolume z)
+{
+    local int i;
+    for(i=0; i<ArrayCount(zone_gravities); i++) {
+        if( z.name == zone_gravities[i].zonename )
+            return zone_gravities[i].gravity;
+        if( zone_gravities[i].zonename == '' )
+            break;
+    }
+    return NormalGravity;
+}
+
+function SaveDefaultZoneGravity(PhysicsVolume z)
+{
+    local int i;
+    if( z.gravity.X ~= NormalGravity.X && z.gravity.Y ~= NormalGravity.Y && z.gravity.Z ~= NormalGravity.Z ) return;
+    for(i=0; i<ArrayCount(zone_gravities); i++) {
+        if( z.name == zone_gravities[i].zonename )
+            return;
+        if( zone_gravities[i].zonename == '' ) {
+            zone_gravities[i].zonename = z.name;
+            zone_gravities[i].gravity = z.gravity;
+            return;
+        }
+    }
+}
+
+function float GetDefaultZoneFriction(PhysicsVolume z)
+{
+    local int i;
+    for(i=0; i<ArrayCount(zone_frictions); i++) {
+        if( z.name == zone_frictions[i].zonename )
+            return zone_frictions[i].friction;
+    }
+    return NormalFriction;
+}
+
+function SaveDefaultZoneFriction(PhysicsVolume z)
+{
+    local int i;
+    if( z.GroundFriction ~= NormalFriction ) return;
+    for(i=0; i<ArrayCount(zone_frictions); i++) {
+        if( zone_frictions[i].zonename == '' || z.name == zone_frictions[i].zonename ) {
+            zone_frictions[i].zonename = z.name;
+            zone_frictions[i].friction = z.GroundFriction;
+            return;
+        }
+    }
+}
+function bool GetDefaultZoneWater(PhysicsVolume z)
+{
+    local int i;
+    for(i=0; i<ArrayCount(zone_waters); i++) {
+        if( z.name == zone_waters[i].zonename )
+            return zone_waters[i].water;
+    }
+    return True;
+}
+
+function SaveDefaultZoneWater(PhysicsVolume z)
+{
+    local int i;
+    for(i=0; i<ArrayCount(zone_waters); i++) {
+        if( zone_waters[i].zonename == '' || z.name == zone_waters[i].zonename ) {
+            zone_waters[i].zonename = z.name;
+            zone_waters[i].water = z.bWaterVolume;
+            return;
+        }
+    }
+}
 function GiveInventoryToPawn(Class<Inventory> className, Pawn p)
 {
     local Inventory inv;
@@ -693,6 +826,172 @@ function TopUpWeaponAmmoAllPawns(class<Weapon> weaponClass)
     }
 }
 
+function bool IsGameRuleActive(class<GameRules> rule)
+{
+    local GameRules curRule,prevRule;
+
+    prevRule = None;
+    curRule=Level.Game.GameRulesModifiers;
+    while (curRule!=None){
+        if (curRule.class==rule){
+            return True;
+        }
+        prevRule = curRule;
+        curRule = curRule.NextGameRules;
+    }
+    return False;
+}
+
+function bool AddNewGameRule(class<GameRules> rule)
+{
+    local GameRules newRule;
+
+    newRule = Spawn(rule);
+
+    if (newRule==None){
+        return False;
+    }
+
+    if (Level.Game.GameRulesModifiers==None){
+        Level.Game.GameRulesModifiers=newRule;
+    } else {
+        Level.Game.GameRulesModifiers.AddGameRules(newRule);
+    }
+
+    return True;
+}
+
+function bool RemoveGameRule(class<GameRules> rule)
+{
+    local GameRules curRule,prevRule,removedRule;
+
+    prevRule = None;
+    removedRule = None;
+    curRule=Level.Game.GameRulesModifiers;
+    while (curRule!=None && removedRule==None){
+        if (curRule.class==rule){
+            removedRule = curRule;
+            if (prevRule!=None){
+                prevRule.NextGameRules = curRule.NextGameRules;
+            } else {
+                Level.Game.GameRulesModifiers = curRule.NextGameRules;
+            }
+        } else {
+            prevRule = curRule;
+            curRule = curRule.NextGameRules;
+        }
+    }
+
+    if (removedRule==None){
+        return False;
+    }
+
+    removedRule.Destroy();
+
+    return True;
+}
+
+function ForceAllPawnsToSpecificWeapon(class<Weapon> weaponClass)
+{
+    local Pawn p;
+    
+    foreach AllActors(class'Pawn',p) {
+        if (!p.IsA('StationaryPawn') && p.Health>0){
+            ForcePawnToSpecificWeapon(p, weaponClass);
+        }
+    }
+}
+
+function RestoreBodyScale()
+{
+    local Pawn p;
+    local int i;
+    foreach AllActors(class'Pawn',p){
+        for(i=0;i<=5;i++)
+        p.SetBoneScale(i,1.0);
+    }
+}
+
+function SetAllBoneScale(Pawn p, float scale)
+{
+    p.SetBoneScale(0,scale,'lthigh');
+    p.SetBoneScale(1,scale,'rthigh');
+    p.SetBoneScale(2,scale,'rfarm');
+    p.SetBoneScale(3,scale,'lfarm');
+    p.SetBoneScale(4,scale,'head');
+    p.SetBoneScale(5,scale,'spine');
+}
+
+function SetMoonPhysics(bool enabled) {
+    local PhysicsVolume Z;
+    ForEach AllActors(class'PhysicsVolume', Z)
+    {
+        if (enabled && Z.Gravity != MoonGrav ) {
+            SaveDefaultZoneGravity(Z);
+            Z.Gravity = MoonGrav;
+        }
+        else if ( (!enabled) && Z.Gravity == MoonGrav ) {
+            Z.Gravity = GetDefaultZoneGravity(Z);
+        }
+    }
+}
+
+function SetIcePhysics(bool enabled) {
+    local PhysicsVolume Z;
+    ForEach AllActors(class'PhysicsVolume', Z) {
+        if (enabled && Z.GroundFriction != IceFriction ) {
+            SaveDefaultZoneFriction(Z);
+            Z.GroundFriction = IceFriction;
+        }
+        else if ( (!enabled) && Z.GroundFriction == IceFriction ) {
+            Z.GroundFriction = GetDefaultZoneFriction(Z);
+        }
+    }
+}
+
+function SetFlood(bool enabled) {
+    local PhysicsVolume Z;
+    ForEach AllActors(class'PhysicsVolume', Z) {
+        if (enabled && Z.bWaterVolume != True ) {
+            SaveDefaultZoneWater(Z);
+            Z.bWaterVolume = True;
+        }
+        else if ( (!enabled) && Z.bWaterVolume == True ) {
+            Z.bWaterVolume = GetDefaultZoneWater(Z);
+        }
+
+        if (z.bWaterVolume && z.VolumeEffect==None){
+            z.VolumeEffect = EFFECT_WaterVolume(Level.ObjectPool.AllocateObject(class'EFFECT_WaterVolume'));
+            z.FluidFriction=class'WaterVolume'.Default.FluidFriction;
+        } else if (!z.bWaterVolume && z.VolumeEffect!=None){
+            Level.ObjectPool.FreeObject(z.VolumeEffect);
+            z.VolumeEffect=None;
+            z.FluidFriction=class'PhysicsVolume'.Default.FluidFriction;
+        }
+    }
+}
+
+function UpdateAllPawnsSwimState()
+{
+    
+    local Pawn p;
+    
+    foreach AllActors(class'Pawn',p) {
+        //Broadcast("State before update was "$p.GetStateName());
+        if (p.Health>0){
+            if (p.HeadVolume.bWaterVolume) {
+                p.setPhysics(PHYS_Swimming);
+                p.SetBase(None);
+            } else {
+                p.setPhysics(PHYS_Falling);
+            }
+
+            if (p.IsPlayerPawn()){
+                PlayerController(p.Controller).EnterStartState();
+            }
+        }
+    }
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////                                CROWD CONTROL EFFECT FUNCTIONS                                       ////
@@ -1307,16 +1606,6 @@ function int StartLimblessMode(string viewer, int duration)
     return Success;
 }
 
-function SetAllBoneScale(Pawn p, float scale)
-{
-    p.SetBoneScale(0,scale,'lthigh');
-    p.SetBoneScale(1,scale,'rthigh');
-    p.SetBoneScale(2,scale,'rfarm');
-    p.SetBoneScale(3,scale,'lfarm');
-    p.SetBoneScale(4,scale,'head');
-    p.SetBoneScale(5,scale,'spine');
-}
-
 function int StartFullFatMode(string viewer, int duration)
 {
     local Pawn p;
@@ -1373,16 +1662,6 @@ function int StartSkinAndBonesMode(string viewer, int duration)
     return Success;
 }
 
-function RestoreBodyScale()
-{
-    local Pawn p;
-    local int i;
-    foreach AllActors(class'Pawn',p){
-        for(i=0;i<=5;i++)
-        p.SetBoneScale(i,1.0);
-    }
-}
-
 function int StartVampireMode(string viewer, int duration)
 {
     if (vampireTimer>0) {
@@ -1406,83 +1685,6 @@ function int StartVampireMode(string viewer, int duration)
     vampireTimer = duration;
     return Success;
 }
-
-function bool IsGameRuleActive(class<GameRules> rule)
-{
-    local GameRules curRule,prevRule;
-
-    prevRule = None;
-    curRule=Level.Game.GameRulesModifiers;
-    while (curRule!=None){
-        if (curRule.class==rule){
-            return True;
-        }
-        prevRule = curRule;
-        curRule = curRule.NextGameRules;
-    }
-    return False;
-}
-
-function bool AddNewGameRule(class<GameRules> rule)
-{
-    local GameRules newRule;
-
-    newRule = Spawn(rule);
-
-    if (newRule==None){
-        return False;
-    }
-
-    if (Level.Game.GameRulesModifiers==None){
-        Level.Game.GameRulesModifiers=newRule;
-    } else {
-        Level.Game.GameRulesModifiers.AddGameRules(newRule);
-    }
-
-    return True;
-}
-
-function bool RemoveGameRule(class<GameRules> rule)
-{
-    local GameRules curRule,prevRule,removedRule;
-
-    prevRule = None;
-    removedRule = None;
-    curRule=Level.Game.GameRulesModifiers;
-    while (curRule!=None && removedRule==None){
-        if (curRule.class==rule){
-            removedRule = curRule;
-            if (prevRule!=None){
-                prevRule.NextGameRules = curRule.NextGameRules;
-            } else {
-                Level.Game.GameRulesModifiers = curRule.NextGameRules;
-            }
-        } else {
-            prevRule = curRule;
-            curRule = curRule.NextGameRules;
-        }
-    }
-
-    if (removedRule==None){
-        return False;
-    }
-
-    removedRule.Destroy();
-
-    return True;
-}
-
-function ForceAllPawnsToSpecificWeapon(class<Weapon> weaponClass)
-{
-    local Pawn p;
-    
-    foreach AllActors(class'Pawn',p) {
-        if (!p.IsA('StationaryPawn') && p.Health>0){
-            ForcePawnToSpecificWeapon(p, weaponClass);
-        }
-    }
-}
-
 
 function int ForceWeaponUse(String viewer, String weaponName, int duration)
 {
@@ -1577,14 +1779,59 @@ function int ReturnCTFFlags(String viewer)
     return Success;
 }
 
+function int EnableMoonPhysics(string viewer, int duration)
+{
+    if (gravityTimer>0) {
+        return TempFail;
+    }
+    if (duration==0){
+        duration = GravityTimerDefault;
+    }
+    Broadcast(viewer@"reduced gravity!");
+    SetMoonPhysics(True);
+    gravityTimer = duration;
+
+    return Success;
+}
+
+function int EnableIcePhysics(string viewer, int duration)
+{
+    if (iceTimer>0) {
+        return TempFail;
+    }
+    
+    if (duration==0){
+        duration = IceTimerDefault;
+    }
+    
+    Broadcast(viewer@"made the ground freeze!");
+    SetIcePhysics(True);
+    iceTimer = duration;
+
+    return Success;
+}
+
+function int StartFlood(string viewer, int duration)
+{
+    if (floodTimer>0) {
+        return TempFail;
+    }
+    Broadcast(viewer@"started a flood!");
+
+    SetFlood(True);
+    UpdateAllPawnsSwimState();
+    if (duration==0){
+        duration = FloodTimerDefault;
+    }
+    floodTimer = duration;
+    return Success;
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////                                  CROWD CONTROL EFFECT MAPPING                                       ////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //Effects missing that were in UT99
-//Ice Physics
-//Low Grav
-//Flood
 //Spawn a bot (attack/defend)
 function int doCrowdControlEvent(string code, string param[5], string viewer, int type, int duration) {
     switch(code) {
@@ -1654,6 +1901,12 @@ function int doCrowdControlEvent(string code, string param[5], string viewer, in
             return StartFullFatMode(viewer,duration);
         case "skin_and_bones":
             return StartSkinAndBonesMode(viewer,duration);
+        case "low_grav":
+            return EnableMoonPhysics(viewer, duration); 
+        case "ice_physics":
+            return EnableIcePhysics(viewer, duration);
+        case "flood":
+            return StartFlood(viewer, duration);
         default:
             Broadcast("Got Crowd Control Effect -   code: "$code$"   viewer: "$viewer );
             break;
