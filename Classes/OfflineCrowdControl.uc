@@ -2,6 +2,7 @@ class OfflineCrowdControl extends Mutator config(CrowdControl);
 
 var bool initialized;
 var UT2k4CCEffects ccEffects;
+var UT2k4CCHUDOverlay hudOverlay;
 
 struct EffectConfig {
     var string EffectName;
@@ -165,11 +166,18 @@ function int RandomOfflineEffects()
 
 function ModifyPlayer(Pawn Other)
 {
-   //if (Other.PlayerReplicationInfo != None)
-   //   Level.Game.Broadcast(self,"The player"@Other.PlayerReplicationInfo.PlayerName@"respawned!");
-
-   if (NextMutator != None)
-      NextMutator.ModifyPlayer(Other);
+    //I bet this doesn't work in multiplayer
+    if (PlayerController(Other.Controller)!=None){
+        if (hudOverlay==None){
+            hudOverlay=Spawn(class'UT2k4CCHUDOverlay');
+        }
+        PlayerController(Other.Controller).myHUD.AddHudOverlay(hudOverlay);
+    }    
+    if (ccEffects!=None){
+        ccEffects.ModifyPlayer(Other);
+    }
+    if (NextMutator != None)
+        NextMutator.ModifyPlayer(Other);
 }
 
 function MutateStatus(PlayerController Sender)

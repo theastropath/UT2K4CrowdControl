@@ -49,7 +49,10 @@ function ModifyPlayer(Pawn Other)
             hudOverlay=Spawn(class'UT2k4CCHUDOverlay');
         }
         PlayerController(Other.Controller).myHUD.AddHudOverlay(hudOverlay);
-    }    
+    }
+    if (ccLink!=None && ccLink.ccEffects!=None){
+        ccLink.ccEffects.ModifyPlayer(Other);
+    }
     if (NextMutator != None)
         NextMutator.ModifyPlayer(Other);
 }

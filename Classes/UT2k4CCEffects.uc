@@ -30,6 +30,23 @@ var int forceWeaponTimer;
 const ForceWeaponTimerDefault = 60;
 var class<Weapon> forcedWeapon;
 
+var int bodyEffectTimer;
+const BodyEffectTimerDefault = 60;
+const BigHeadScale = 4.0;
+const HiddenScale = 0.0;
+const FatScale = 2.0;
+const SkinnyScale = 0.5;
+enum EBodyEffect
+{
+    BE_None,
+    BE_BigHead,
+    BE_Headless,
+    BE_NoLimbs,
+    BE_Fat,
+    BE_Skinny
+};
+var EBodyEffect bodyEffect;
+
 var int cfgMinPlayers;
 
 var bool bFat,bFast;
@@ -122,6 +139,22 @@ simulated function GetEffectList(out string effects[15], out int numEffects)
         effects[i]="Forced "$forcedWeapon.default.ItemName$": "$forceWeaponTimer;
         i++;
     }
+    if (bodyEffectTimer > 0) {
+        if (bodyEffect==BE_BigHead){
+            effects[i]="Big Head Mode: ";
+        } else if (bodyEffect==BE_NoLimbs){
+            effects[i]="Limbless Mode: ";
+        }else if (bodyEffect==BE_Fat){
+            effects[i]="Full Fat: ";
+        }else if (bodyEffect==BE_Skinny){
+            effects[i]="Skin and Bones: ";
+        }else if (bodyEffect==BE_Headless){
+            effects[i]="Headless: ";
+        }
+        effects[i]=effects[i]$bodyEffectTimer;
+        i++;
+    }
+
     if (numAddedBots > 0) {
         effects[i]="Added Bots: "$numAddedBots;
         i++;
@@ -160,6 +193,7 @@ function PeriodicUpdates()
     if (vampireTimer > 0) {
         vampireTimer--;
         if (vampireTimer <= 0) {
+            RemoveGameRule(class'VampireGameRules');
             Broadcast("You no longer feed on the blood of others...");
         }
     }  
@@ -171,6 +205,16 @@ function PeriodicUpdates()
             forcedWeapon = None;
         }
     }  
+    if (bodyEffectTimer > 0) {
+        bodyEffectTimer--;
+        if (bodyEffectTimer <= 0) {
+            Broadcast("Your body returns to normal...");
+            RestoreBodyScale();
+            BodyEffect = BE_None;
+        }
+    }  
+
+    
 
 }
 
@@ -231,20 +275,22 @@ function ScoreKill(Pawn Killer,Pawn Other)
     }    
 }
 
-
-function MutatorTakeDamage( out int ActualDamage, Pawn Victim, Pawn InstigatedBy, out Vector HitLocation, 
-						out Vector Momentum, name DamageType)
+function ModifyPlayer(Pawn Other)
 {
-    //Broadcast(InstigatedBy.PlayerReplicationInfo.PlayerName$" inflicted "$ActualDamage$" damage to "$Victim.PlayerReplicationInfo.PlayerName);
-    
-    //Check if vampire mode timer is running, and if it is, do the vampire thing
-    //Don't allow healing off of damage to yourself
-    if (vampireTimer > 0 && InstigatedBy!=None && Victim!=InstigatedBy) {
-        InstigatedBy.Health += (ActualDamage/2); //Don't heal the full amount of damage
-        
-        //Don't let it overheal
-        if (InstigatedBy.Health > 199) {
-            InstigatedBy.Health = 199;
+    if (bodyEffectTimer>0) {
+        if (bodyEffect==BE_BigHead){
+            Other.SetHeadScale(BigHeadScale);
+        } else if (bodyEffect==BE_Headless){
+            Other.SetHeadScale(HiddenScale);
+        } else if (bodyEffect==BE_NoLimbs){
+            Other.SetBoneScale(0,HiddenScale,'lthigh');
+            Other.SetBoneScale(1,HiddenScale,'rthigh');
+            Other.SetBoneScale(2,HiddenScale,'rfarm');
+            Other.SetBoneScale(3,HiddenScale,'lfarm');
+        } else if (bodyEffect==BE_Fat){
+            SetAllBoneScale(Other,FatScale);
+        } else if (bodyEffect==BE_Skinny){
+            SetAllBoneScale(Other,SkinnyScale);
         }
     }
 }
@@ -1162,12 +1208,197 @@ function int BlueRedeemerShell(String viewer)
     return Success;
 }
 
+function int StartBigHeadMode(string viewer, int duration)
+{
+    local Pawn p;
+    local bool changed;
+
+    if (bodyEffectTimer>0) {
+        return TempFail;
+    }
+
+    //Check if game rule is already in place, fail if it is
+    //This is different from what we're doing, but would interfere
+    if (IsGameRuleActive(class'BigHeadRules')){
+        return TempFail;
+    }
+
+    foreach AllActors(class'Pawn',p){
+        changed=True;
+        p.SetHeadScale(BigHeadScale);
+    }
+
+    //No pawns to change!
+    if (!changed){
+        return TempFail;
+    }
+
+    Broadcast(viewer@"inflated everyones head!");
+    if (duration==0){
+        duration = BodyEffectTimerDefault;
+    }
+    bodyEffectTimer = duration;
+    bodyEffect=BE_BigHead;
+    return Success;
+}
+
+function int StartHeadlessMode(string viewer, int duration)
+{
+    local Pawn p;
+    local bool changed;
+
+    if (bodyEffectTimer>0) {
+        return TempFail;
+    }
+
+    //Check if game rule is already in place, fail if it is
+    //This is different from what we're doing, but would interfere
+    if (IsGameRuleActive(class'BigHeadRules')){
+        return TempFail;
+    }
+
+    foreach AllActors(class'Pawn',p){
+        changed=True;
+        p.SetHeadScale(HiddenScale);
+    }
+
+    //No pawns to change!
+    if (!changed){
+        return TempFail;
+    }
+
+    Broadcast(viewer@"removed everyones head!");
+    if (duration==0){
+        duration = BodyEffectTimerDefault;
+    }
+    bodyEffectTimer = duration;
+    bodyEffect=BE_Headless;
+    return Success;
+}
+
+function int StartLimblessMode(string viewer, int duration)
+{
+    local Pawn p;
+    local bool changed;
+
+    if (bodyEffectTimer>0) {
+        return TempFail;
+    }
+
+    foreach AllActors(class'Pawn',p){
+        changed=True;
+        p.SetBoneScale(0,HiddenScale,'lthigh');
+        p.SetBoneScale(1,HiddenScale,'rthigh');
+        p.SetBoneScale(2,HiddenScale,'rfarm');
+        p.SetBoneScale(3,HiddenScale,'lfarm');
+    }
+
+    //No pawns to change!
+    if (!changed){
+        return TempFail;
+    }
+
+    Broadcast(viewer@"removed everyones limbs!");
+    if (duration==0){
+        duration = BodyEffectTimerDefault;
+    }
+    bodyEffectTimer = duration;
+    bodyEffect=BE_NoLimbs;
+    return Success;
+}
+
+function SetAllBoneScale(Pawn p, float scale)
+{
+    p.SetBoneScale(0,scale,'lthigh');
+    p.SetBoneScale(1,scale,'rthigh');
+    p.SetBoneScale(2,scale,'rfarm');
+    p.SetBoneScale(3,scale,'lfarm');
+    p.SetBoneScale(4,scale,'head');
+    p.SetBoneScale(5,scale,'spine');
+}
+
+function int StartFullFatMode(string viewer, int duration)
+{
+    local Pawn p;
+    local bool changed;
+
+    if (bodyEffectTimer>0) {
+        return TempFail;
+    }
+
+    foreach AllActors(class'Pawn',p){
+        changed=True;
+        SetAllBoneScale(p,FatScale);
+    }
+
+    //No pawns to change!
+    if (!changed){
+        return TempFail;
+    }
+
+    Broadcast(viewer@"Puffed everyone up!");
+    if (duration==0){
+        duration = BodyEffectTimerDefault;
+    }
+    bodyEffectTimer = duration;
+    bodyEffect=BE_Fat;
+    return Success;
+}
+
+function int StartSkinAndBonesMode(string viewer, int duration)
+{
+    local Pawn p;
+    local bool changed;
+
+    if (bodyEffectTimer>0) {
+        return TempFail;
+    }
+
+    foreach AllActors(class'Pawn',p){
+        changed=True;
+        SetAllBoneScale(p,SkinnyScale);
+    }
+
+    //No pawns to change!
+    if (!changed){
+        return TempFail;
+    }
+
+    Broadcast(viewer@"made everyone skinny!");
+    if (duration==0){
+        duration = BodyEffectTimerDefault;
+    }
+    bodyEffectTimer = duration;
+    bodyEffect=BE_Skinny;
+    return Success;
+}
+
+function RestoreBodyScale()
+{
+    local Pawn p;
+    local int i;
+    foreach AllActors(class'Pawn',p){
+        for(i=0;i<=5;i++)
+        p.SetBoneScale(i,1.0);
+    }
+}
 
 function int StartVampireMode(string viewer, int duration)
 {
     if (vampireTimer>0) {
         return TempFail;
     }
+
+    //Check if game rule is already in place, fail if it is
+    if (IsGameRuleActive(class'VampireGameRules')){
+        return TempFail;
+    }
+
+    //Attempt to add the game rules, fail if it doesn't for some reason
+    if (!AddNewGameRule(class'VampireGameRules')){
+        return TempFail;
+    }
+
     Broadcast(viewer@"made everyone have a taste for blood!");
     if (duration==0){
         duration = VampireTimerDefault;
@@ -1176,6 +1407,70 @@ function int StartVampireMode(string viewer, int duration)
     return Success;
 }
 
+function bool IsGameRuleActive(class<GameRules> rule)
+{
+    local GameRules curRule,prevRule;
+
+    prevRule = None;
+    curRule=Level.Game.GameRulesModifiers;
+    while (curRule!=None){
+        if (curRule.class==rule){
+            return True;
+        }
+        prevRule = curRule;
+        curRule = curRule.NextGameRules;
+    }
+    return False;
+}
+
+function bool AddNewGameRule(class<GameRules> rule)
+{
+    local GameRules newRule;
+
+    newRule = Spawn(rule);
+
+    if (newRule==None){
+        return False;
+    }
+
+    if (Level.Game.GameRulesModifiers==None){
+        Level.Game.GameRulesModifiers=newRule;
+    } else {
+        Level.Game.GameRulesModifiers.AddGameRules(newRule);
+    }
+
+    return True;
+}
+
+function bool RemoveGameRule(class<GameRules> rule)
+{
+    local GameRules curRule,prevRule,removedRule;
+
+    prevRule = None;
+    removedRule = None;
+    curRule=Level.Game.GameRulesModifiers;
+    while (curRule!=None && removedRule==None){
+        if (curRule.class==rule){
+            removedRule = curRule;
+            if (prevRule!=None){
+                prevRule.NextGameRules = curRule.NextGameRules;
+            } else {
+                Level.Game.GameRulesModifiers = curRule.NextGameRules;
+            }
+        } else {
+            prevRule = curRule;
+            curRule = curRule.NextGameRules;
+        }
+    }
+
+    if (removedRule==None){
+        return False;
+    }
+
+    removedRule.Destroy();
+
+    return True;
+}
 
 function ForceAllPawnsToSpecificWeapon(class<Weapon> weaponClass)
 {
@@ -1287,8 +1582,6 @@ function int ReturnCTFFlags(String viewer)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //Effects missing that were in UT99
-//Full Fat
-//Skin and Bones
 //Ice Physics
 //Low Grav
 //Flood
@@ -1339,8 +1632,8 @@ function int doCrowdControlEvent(string code, string param[5], string viewer, in
             return FirstPlaceSlow(viewer, duration);
         case "blue_redeemer_shell": //Blow up first place player
             return BlueRedeemerShell(viewer);
-        //case "vampire_mode":  //Inflicting damage heals you for the damage dealt (Can grab damage via MutatorTakeDamage)
-        //    return StartVampireMode(viewer, duration);  //TODO: Will need to make a GameRules (or use a pre-existing one from the vampire mutator?) and apply it to the game for the duration of this effect
+        case "vampire_mode":  //Inflicting damage heals you for the damage dealt
+            return StartVampireMode(viewer, duration);
         case "force_weapon_use": //Give everybody a weapon, then force them to use it for the duration.  Ammo tops up if run out  
             return ForceWeaponUse(viewer,param[0],duration);
         case "force_instagib": //Give everybody an enhanced shock rifle, then force them to use it for the duration.  Ammo tops up if run out  
@@ -1351,6 +1644,16 @@ function int doCrowdControlEvent(string code, string param[5], string viewer, in
             return ResetDominationControlPoints(viewer);
         case "return_ctf_flags":
             return ReturnCTFFlags(viewer);
+        case "big_head":
+            return StartBigHeadMode(viewer,duration);
+        case "headless":
+            return StartHeadlessMode(viewer,duration);
+        case "limbless":
+            return StartLimblessMode(viewer,duration);
+        case "full_fat":
+            return StartFullFatMode(viewer,duration);
+        case "skin_and_bones":
+            return StartSkinAndBonesMode(viewer,duration);
         default:
             Broadcast("Got Crowd Control Effect -   code: "$code$"   viewer: "$viewer );
             break;

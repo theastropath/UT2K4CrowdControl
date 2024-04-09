@@ -89,14 +89,6 @@ function ScoreKill(Pawn Killer,Pawn Other)
     ccEffects.ScoreKill(Killer,Other);
 }
 
-
-//Called every time damage is dealt
-function MutatorTakeDamage( out int ActualDamage, Pawn Victim, Pawn InstigatedBy, out Vector HitLocation, 
-						out Vector Momentum, name DamageType)
-{
-    ccEffects.MutatorTakeDamage(ActualDamage,Victim,InstigatedBy,HitLocation,Momentum,DamageType);
-}
-
 function handleMessage(string msg) {
 
     local int id,type, duration;
