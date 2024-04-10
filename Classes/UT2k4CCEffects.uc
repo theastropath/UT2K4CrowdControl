@@ -611,40 +611,35 @@ function class<Weapon> GetWeaponClassByName(String weaponName)
     
     return weaponClass;
 }
+
 function Weapon GiveWeaponToPawn(Pawn p, class<Weapon> WeaponClass, optional bool bBringUp)
 {
     local Weapon NewWeapon;
     local Inventory inv;
-  
+
     inv = p.FindInventoryType(WeaponClass);
-	if (inv != None ) {
+    if (inv != None ) {
             newWeapon = Weapon(inv);
             newWeapon.GiveAmmo(0,None,true);
             return newWeapon;
         }
         
-	newWeapon = Spawn(WeaponClass);
-	if ( newWeapon != None ) {
-		newWeapon.GiveTo(p);
-		newWeapon.GiveAmmo(0,None,true);
-		//newWeapon.SetSwitchPriority(p);
-		//newWeapon.WeaponSet(p);
-		newWeapon.AmbientGlow = 0;
-		if ( p.Controller.IsA('PlayerController') )
+    newWeapon = Spawn(WeaponClass);
+    if ( newWeapon != None ) {
+        newWeapon.GiveTo(p);
+        newWeapon.GiveAmmo(0,None,true);
+        //newWeapon.SetSwitchPriority(p);
+        //newWeapon.WeaponSet(p);
+        newWeapon.AmbientGlow = 0;
+        if ( p.Controller.IsA('PlayerController') )
                     newWeapon.SetHand(PlayerController(p.Controller).Handedness);
-		else
+        else
                     newWeapon.GotoState('Idle');
-		if ( bBringUp ) {
-    	    p.PendingWeapon = newWeapon;
-            p.ChangedWeapon();
-            //p.Weapon.PutDown();
-            //p.Weapon.GotoState('DownWeapon');
-			//p.PendingWeapon = None;
-			//p.Weapon = newWeapon;
-			//p.Weapon.BringUp();
-		}
-	}
-	return newWeapon;
+        if ( bBringUp ) {
+            p.Controller.ClientSetWeapon(WeaponClass);
+        }
+    }
+    return newWeapon;
 }
 
 function Weapon FindMeleeWeaponInPawnInventory(Pawn p)
@@ -676,14 +671,7 @@ function ForcePawnToMeleeWeapon(Pawn p)
     
     meleeweapon = FindMeleeWeaponInPawnInventory(p);
 
-    p.PendingWeapon = meleeweapon;
-    p.ChangedWeapon();
-
-    //p.Weapon.PutDown();
-    //p.Weapon.GotoState('DownWeapon');
-	//p.PendingWeapon = None;
-	//p.Weapon = meleeweapon;
-	//p.Weapon.BringUp();
+    p.Controller.ClientSetWeapon(meleeweapon.Class);
 }
 
 function ForceAllPawnsToMelee()
@@ -797,7 +785,7 @@ function int FindTeamWithLeastPlayers()
 }
 
 
-simulated function ForcePawnToSpecificWeapon(Pawn p, class<Weapon> weaponClass)
+function ForcePawnToSpecificWeapon(Pawn p, class<Weapon> weaponClass)
 {
     local Weapon specificweapon;
     
@@ -805,15 +793,7 @@ simulated function ForcePawnToSpecificWeapon(Pawn p, class<Weapon> weaponClass)
         return;  //No need to do a lookup if it's already melee or nothing
     }
     
-    specificweapon = FindSpecificWeaponInPawnInventory(p, weaponClass);
-    p.PendingWeapon = specificweapon;
-    p.ChangedWeapon();
-
-    //p.Weapon.PutDown();
-    //p.Weapon.GotoState('DownWeapon');
-    //p.PendingWeapon = None;
-    //p.Weapon = specificweapon;
-    //p.Weapon.BringUp();
+    p.Controller.ClientSetWeapon(weaponClass);
 }
 
 simulated function Weapon FindSpecificWeaponInPawnInventory(Pawn p,class<Weapon> weaponClass)
