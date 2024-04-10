@@ -54,14 +54,16 @@ function ServerTraveling(string URL, bool bItems)
         NextMutator.ServerTraveling(URL,bItems);
 }
 
-function ModifyPlayer(Pawn Other)
+simulated function ModifyPlayer(Pawn Other)
 {
     //I bet this doesn't work in multiplayer
     if (PlayerController(Other.Controller)!=None){
-        if (hudOverlay==None){
-            hudOverlay=Spawn(class'UT2k4CCHUDOverlay');
+        if (PlayerController(Other.Controller).myHUD!=None){
+            if (hudOverlay==None){
+                hudOverlay=Spawn(class'UT2k4CCHUDOverlay');
+            }
+            PlayerController(Other.Controller).myHUD.AddHudOverlay(hudOverlay);
         }
-        PlayerController(Other.Controller).myHUD.AddHudOverlay(hudOverlay);
     }
     if (ccLink!=None && ccLink.ccEffects!=None){
         ccLink.ccEffects.ModifyPlayer(Other);
@@ -206,11 +208,27 @@ function Mutate (string MutateString, PlayerController Sender)
 		NextMutator.Mutate(MutateString, Sender);
 }
 
+static event string GetDescriptionText(string PropName) {
+    // The value of PropName passed to the function should match the variable name
+    // being configured.
+    switch (PropName) {
+        case "crowd_control_addr":  return "The IP Address where the Crowd Control client is running";
+    }
+    return Super.GetDescriptionText(PropName);
+}
 
+static function FillPlayInfo(PlayInfo PlayInfo) {
+    Super.FillPlayInfo(PlayInfo);  // Always begin with calling parent
+    
+    PlayInfo.AddSetting("Crowd Control", "crowd_control_addr", "Crowd Control Address", 0, 2, "Text","15");
+
+    PlayInfo.PopClass();
+}
 
 defaultproperties
 {
     bAddToServerPackages=True
     FriendlyName="Crowd Control"
     Description="Let viewers mess with your game by sending effects!"
+    crowd_control_addr="127.0.0.1"
 }

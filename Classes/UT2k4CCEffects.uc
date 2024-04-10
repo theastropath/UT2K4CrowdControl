@@ -635,10 +635,13 @@ function Weapon GiveWeaponToPawn(Pawn p, class<Weapon> WeaponClass, optional boo
 		else
                     newWeapon.GotoState('Idle');
 		if ( bBringUp ) {
-			p.Weapon.GotoState('DownWeapon');
-			p.PendingWeapon = None;
-			p.Weapon = newWeapon;
-			p.Weapon.BringUp();
+    	    p.PendingWeapon = newWeapon;
+            p.ChangedWeapon();
+            //p.Weapon.PutDown();
+            //p.Weapon.GotoState('DownWeapon');
+			//p.PendingWeapon = None;
+			//p.Weapon = newWeapon;
+			//p.Weapon.BringUp();
 		}
 	}
 	return newWeapon;
@@ -672,11 +675,15 @@ function ForcePawnToMeleeWeapon(Pawn p)
     }
     
     meleeweapon = FindMeleeWeaponInPawnInventory(p);
-    
-    p.Weapon.GotoState('DownWeapon');
-	p.PendingWeapon = None;
-	p.Weapon = meleeweapon;
-	p.Weapon.BringUp();
+
+    p.PendingWeapon = meleeweapon;
+    p.ChangedWeapon();
+
+    //p.Weapon.PutDown();
+    //p.Weapon.GotoState('DownWeapon');
+	//p.PendingWeapon = None;
+	//p.Weapon = meleeweapon;
+	//p.Weapon.BringUp();
 }
 
 function ForceAllPawnsToMelee()
@@ -790,23 +797,26 @@ function int FindTeamWithLeastPlayers()
 }
 
 
-function ForcePawnToSpecificWeapon(Pawn p, class<Weapon> weaponClass)
+simulated function ForcePawnToSpecificWeapon(Pawn p, class<Weapon> weaponClass)
 {
     local Weapon specificweapon;
     
-    if (p.Weapon.Class == weaponClass) {
+    if (p.Weapon==None || p.Weapon.Class == weaponClass) {
         return;  //No need to do a lookup if it's already melee or nothing
     }
     
     specificweapon = FindSpecificWeaponInPawnInventory(p, weaponClass);
-    
-    p.Weapon.GotoState('DownWeapon');
-	p.PendingWeapon = None;
-	p.Weapon = specificweapon;
-	p.Weapon.BringUp();
+    p.PendingWeapon = specificweapon;
+    p.ChangedWeapon();
+
+    //p.Weapon.PutDown();
+    //p.Weapon.GotoState('DownWeapon');
+    //p.PendingWeapon = None;
+    //p.Weapon = specificweapon;
+    //p.Weapon.BringUp();
 }
 
-function Weapon FindSpecificWeaponInPawnInventory(Pawn p,class<Weapon> weaponClass)
+simulated function Weapon FindSpecificWeaponInPawnInventory(Pawn p,class<Weapon> weaponClass)
 {
 	local actor Link;
 
@@ -909,7 +919,7 @@ function bool RemoveGameRule(class<GameRules> rule)
     return True;
 }
 
-function ForceAllPawnsToSpecificWeapon(class<Weapon> weaponClass)
+simulated function ForceAllPawnsToSpecificWeapon(class<Weapon> weaponClass)
 {
     local Pawn p;
     

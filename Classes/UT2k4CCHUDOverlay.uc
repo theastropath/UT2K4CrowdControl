@@ -13,12 +13,11 @@ simulated function Render(Canvas C)
 
     baseYPos=5*C.ClipY/7 + C.ClipY/401;
 
-    C.TextSize ("A", FontDX, FontDY);
-
     C.Font = HUD(Owner).GetConsoleFont(C);
     C.DrawColor.R = 255;
     C.DrawColor.G = 255;
     C.DrawColor.B = 255;
+    C.TextSize ("A", FontDX, FontDY);
 
     if (ccEffects==None){
         foreach AllActors(class'UT2k4CCEffects',ccEffects){
