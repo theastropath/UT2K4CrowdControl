@@ -787,8 +787,6 @@ function int FindTeamWithLeastPlayers()
 
 function ForcePawnToSpecificWeapon(Pawn p, class<Weapon> weaponClass)
 {
-    local Weapon specificweapon;
-    
     if (p.Weapon==None || p.Weapon.Class == weaponClass) {
         return;  //No need to do a lookup if it's already melee or nothing
     }
@@ -1009,11 +1007,13 @@ function UpdateAllPawnsSwimState()
 
 function int SuddenDeath(string viewer)
 {
-    local Pawn p;
+    local xPawn p;
     
-    foreach AllActors(class'Pawn',p) {
+    foreach AllActors(class'xPawn',p) {
         if (!p.IsA('StationaryPawn') && p.Health>0){
             p.Health = 1;
+            p.ShieldStrength=0;
+            p.SmallShieldStrength=0;
         }
     }
     
@@ -1089,7 +1089,7 @@ function SetAllPlayersBehindView(bool val)
     local PlayerController p;
     
     foreach AllActors(class'PlayerController',p) {
-        p.BehindView(val);
+        p.ClientSetBehindView(val);
     }
 }
 
@@ -1863,10 +1863,13 @@ function int ReturnCTFFlags(String viewer)
     
     foreach AllActors(class'CTFFlag', flag){
         if (flag.bHome==False){
-            //This needs to call Drop first
-            //Since the "Held" state appears to ignore SendHome
-            flag.Drop(vect(0,0,0)); //In case it's being held
-            flag.SendHome();
+            //Specifying BeginState seems unintuitive, but it bypasses the Begin: bit of the GameObject state
+            //That Begin: bit causes problems if you're standing still when this comes through, as it immediately triggers you as having touched
+            //the flag and gives it back to you.  This lets the flag go back even if you're standing still
+            flag.GoToState('Home','BeginState');
+
+            //Play the audio clip!
+            BroadcastLocalizedMessage( Flag.MessageClass, 3, None, None, Flag.Team );
             resetAny=True;
         }
     }
