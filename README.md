@@ -6,7 +6,7 @@ Since only one instance of Crowd Control can be attached at a time, most effects
 
 ## Compiling
 
-I have been compiling this project using UMake (https://ut99.org/viewtopic.php?f=58&t=14044).  Simply put the contents of this repository into a UT2k4CrowdControl folder in the main Unreal Tournament 2004 install directory, then drag the files inside the Classes folder onto UMake.
+I have been compiling this project using UMake (https://github.com/SeriousBuggie/unreal-umake).  Simply put the contents of this repository into a UT2k4CrowdControl folder in the main Unreal Tournament 2004 install directory, then drag the files inside the Classes folder onto UMake.
 The compiled .u file will be put into the System folder.
 
 
