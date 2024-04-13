@@ -317,7 +317,7 @@ function ScoreKill(Pawn Killer,Pawn Other)
 
     game = DeathMatch(Level.Game);
 
-    //Broadcast(Killer.PlayerReplicationInfo.PlayerName$" just killed "$Other.PlayerReplicationInfo.PlayerName);
+    //Broadcast(Killer.Controller.GetHumanReadableName()$" just killed "$Other.Controller.GetHumanReadableName());
     
     //Check if the killed pawn is a bot that we don't want to respawn
     for (i=0;i<MaxAddedBots;i++){
@@ -329,8 +329,8 @@ function ScoreKill(Pawn Killer,Pawn Other)
                 game.MinPlayers = Max(cfgMinPlayers+numAddedBots, game.NumPlayers + game.NumBots - 1);
             }
 
-            //Broadcast("Should be destroying added bot "$Other.PlayerReplicationInfo.PlayerName);
-            Broadcast("Crowd Control viewer "$Other.PlayerReplicationInfo.PlayerName$" has left the match");
+            //Broadcast("Should be destroying added bot "$Other.Controller.GetHumanReadableName());
+            Broadcast("Crowd Control viewer "$Other.Controller.GetHumanReadableName()$" has left the match");
             //Other.SpawnGibbedCarcass();
             Other.Destroy(); //This may cause issues if there are more mutators caring about ScoreKill.  Probably should schedule this deletion for later instead...
             break;
@@ -713,20 +713,26 @@ function Pawn findPawnByScore(bool highest, int avoidTeam)
         if (p.IsA('StationaryPawn')){
             continue; //Skip turrets and things like that
         }
-        //Broadcast(p.PlayerReplicationInfo.PlayerName$" is on team "$p.PlayerReplicationInfo.Team);
+        if (p.Health<=0){
+            continue; //Skip anyone who might be dead
+        }
+        if (p.PlayerReplicationInfo==None){
+            continue; //skip em if they don't have their PRI
+        }
+        //Broadcast(p.Controller.GetHumanReadableName()$" is on team "$p.PlayerReplicationInfo.Team);
         if (cur==None){
             if (avoid==False || (avoid==True && p.PlayerReplicationInfo.TeamID!=avoidTeam)) {
                 cur = p;
             }
         } else {
             if (highest){
-                if (p.PlayerReplicationInfo.Score > cur.PlayerReplicationInfo.Score) {
+                if (cur==None || p.PlayerReplicationInfo.Score > cur.PlayerReplicationInfo.Score) {
                     if (avoid==False || (avoid==True && p.PlayerReplicationInfo.TeamID!=avoidTeam)) {
                         cur = p;
                     }
                 }
             } else {
-                if (p.PlayerReplicationInfo.Score < cur.PlayerReplicationInfo.Score) {
+                if (cur==None || p.PlayerReplicationInfo.Score < cur.PlayerReplicationInfo.Score) {
                     if (avoid==False || (avoid==True && p.PlayerReplicationInfo.TeamID!=avoidTeam)) {
                         cur = p;
                     }
@@ -1253,7 +1259,7 @@ function int swapPlayer(string viewer) {
         //Bot(b).WhatToDoNext('',''); //TODO
     }
     
-    Broadcast(viewer@"thought "$a.PlayerReplicationInfo.PlayerName$" would look better if they were where"@b.PlayerReplicationInfo.PlayerName@"was");
+    Broadcast(viewer@"thought "$a.Controller.GetHumanReadableName()$" would look better if they were where"@b.Controller.GetHumanReadableName()@"was");
 
     return Success;
 }
@@ -1292,7 +1298,7 @@ function int SwapAllPlayers(string viewer){
     num = numPlayers;
     for (i=numPlayers-1;i>=0;i--){
         newLoc = Rand(num);
-        //Broadcast(pawns[i].PlayerReplicationInfo.PlayerName@"moving to location "$newLoc);
+        //Broadcast(pawns[i].Controller.GetHumanReadableName()@"moving to location "$newLoc);
         
         pawns[i].SetLocation(locs[newLoc]);
         pawns[i].SetRotation(rots[newLoc]);
@@ -1462,7 +1468,7 @@ function int LastPlaceShield(String viewer)
     local Pawn p;
 
     p = findPawnByScore(False,255); //Get lowest score player
-    if (p == None) {
+    if (p == None || p.Controller==None) {
         return TempFail;
     }
     
@@ -1470,7 +1476,7 @@ function int LastPlaceShield(String viewer)
     //GiveInventoryToPawn(class'UT_ShieldBelt',p);
     p.AddShieldStrength(150);
 
-    Broadcast(viewer@"gave full armour to "$p.PlayerReplicationInfo.PlayerName$", who is in last place!");
+    Broadcast(viewer@"gave full armour to "$p.Controller.GetHumanReadableName()$", who is in last place!");
 
     return Success;
 }
@@ -1480,7 +1486,7 @@ function int LastPlaceDamage(String viewer)
     local Pawn p;
 
     p = findPawnByScore(False,255); //Get lowest score player
-    if (p == None) {
+    if (p == None || p.Controller==None) {
         return TempFail;
     }
     
@@ -1488,7 +1494,7 @@ function int LastPlaceDamage(String viewer)
     //GiveInventoryToPawn(class'UDamage',p);
     p.EnableUDamage(30);
     
-    Broadcast(viewer@"gave a Damage Amplifier to "$p.PlayerReplicationInfo.PlayerName$", who is in last place!");
+    Broadcast(viewer@"gave a Damage Amplifier to "$p.Controller.GetHumanReadableName()$", who is in last place!");
 
     return Success;
 }
@@ -1507,7 +1513,7 @@ function int LastPlaceUltraAdrenaline(String viewer)
         return TempFail;
     }
 
-    if (p.PlayerReplicationInfo.PlayerName==""){
+    if (p.Controller.GetHumanReadableName()==""){
         return TempFail;
     }
     
@@ -1517,7 +1523,7 @@ function int LastPlaceUltraAdrenaline(String viewer)
     Spawn(class'XGame.ComboDefensive',p);    
     Spawn(class'XGame.ComboInvis',p);    
 
-    Broadcast(viewer@"triggered all adrenaline combos for "$p.PlayerReplicationInfo.PlayerName$", who is in last place!");
+    Broadcast(viewer@"triggered all adrenaline combos for "$p.Controller.GetHumanReadableName()$", who is in last place!");
 
     return Success;
 }
@@ -1594,9 +1600,9 @@ function int FirstPlaceSlow(String viewer, int duration)
         duration = SingleSlowTimerDefault;
     }
     speedTimer = duration;
-    targetPlayer=p.PlayerReplicationInfo.PlayerName;
+    targetPlayer=p.Controller.GetHumanReadableName();
 
-    Broadcast(viewer$" made "$p.PlayerReplicationInfo.PlayerName$" slow as punishment for being in first place!");
+    Broadcast(viewer$" made "$p.Controller.GetHumanReadableName()$" slow as punishment for being in first place!");
 
     return Success;   
 }
@@ -1633,7 +1639,7 @@ function int BlueRedeemerShell(String viewer)
     missile.GotoState('Flying');
     missile.Explode(high.Location,high.Location);
 
-    Broadcast(viewer$" dropped a redeemer shell on "$high.PlayerReplicationInfo.PlayerName$"'s head, since they are in first place!");
+    Broadcast(viewer$" dropped a redeemer shell on "$high.Controller.GetHumanReadableName()$"'s head, since they are in first place!");
 
     return Success;
 }
