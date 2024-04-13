@@ -44,8 +44,9 @@ public class UnrealTournament2004 : SimpleTCPPack
     {
         //General Effects
         new Effect("Go Third-Person", "third_person"){Price = 10, Description = "Force players to see themselves!", Duration=60},
-        new Effect("Full Fat Tournament", "full_fat"){Price = 5, Description = "All players become extremely fat!", Duration=60},
-        new Effect("Just Skin and Bones", "skin_and_bones"){Price = 4, Description = "All players become extremely skinny!", Duration=60},
+        //new Effect("Full Fat Tournament", "full_fat"){Price = 4, Description = "All players become extremely fat!", Duration=60},
+        //new Effect("Just Skin and Bones", "skin_and_bones"){Price = 4, Description = "All players become extremely skinny!", Duration=60},
+        //new Effect("Limbless Mode", "limbless"){Price = 4, Description = "All players lose their limbs!", Duration=60},
         new Effect("Gotta Go Fast", "gotta_go_fast"){Price = 10, Description = "It's extra fast mode!", Duration=60},
         new Effect("Gotta Go Slow", "gotta_go_slow"){Price = 10, Description = "It's extra slow mode!", Duration=15},
         new Effect("Swap Two Players Positions", "swap_player_position"){Price = 10, Description = "2 players swap positions on the map!"},

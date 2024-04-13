@@ -2,7 +2,6 @@ class OfflineCrowdControl extends Mutator config(CrowdControl);
 
 var bool initialized;
 var UT2k4CCEffects ccEffects;
-var UT2k4CCHUDOverlay hudOverlay;
 
 struct EffectConfig {
     var string EffectName;
@@ -19,6 +18,12 @@ var config String botNames[75];
 
 var int effectCountdown;
 var int ticker;
+
+replication
+{
+    reliable if ( Role == ROLE_Authority )
+        SetPawnBoneScale;
+}
 
 function InitCC()
 {
@@ -162,18 +167,42 @@ function int RandomOfflineEffects()
 
 function ModifyPlayer(Pawn Other)
 {
-    //I bet this doesn't work in multiplayer
-    if (PlayerController(Other.Controller)!=None){
-        if (hudOverlay==None){
-            hudOverlay=Spawn(class'UT2k4CCHUDOverlay');
-        }
-        PlayerController(Other.Controller).myHUD.AddHudOverlay(hudOverlay);
-    }    
     if (ccEffects!=None){
         ccEffects.ModifyPlayer(Other);
     }
     if (NextMutator != None)
         NextMutator.ModifyPlayer(Other);
+}
+
+function ModifyLogin(out string Portal, out string Options)
+{
+    Super.ModifyLogin(Portal, Options);
+
+    if(level.game.hudtype~="xInterface.HudCTeamDeathmatch")
+        Level.Game.HudType=string(class'CrowdControl_HudCTeamDeathMatch');
+    else if(level.game.hudtype~="xInterface.HudCDeathmatch")
+        Level.Game.HudType=string(class'CrowdControl_HudCDeathMatch');
+    else if(level.game.hudtype~="xInterface.HudCBombingRun")
+        Level.Game.HudType=string(class'CrowdControl_HudCBombingRun');
+    else if(level.game.hudtype~="xInterface.HudCCaptureTheFlag")
+        Level.Game.HudType=string(class'CrowdControl_HudCCaptureTheFlag');
+    else if(level.game.hudtype~="xInterface.HudCDoubleDomination")
+        Level.Game.HudType=string(class'CrowdControl_HudCDoubleDomination');
+    else if(level.game.hudtype~="Onslaught.ONSHUDOnslaught")
+        Level.Game.HudType=string(class'CrowdControl_ONSHUDOnslaught');
+    else if(level.game.hudtype~="SkaarjPack.HUDInvasion")
+        Level.Game.HudType=string(class'CrowdControl_HUDInvasion');
+    else if(level.game.hudtype~="BonusPack.HudLMS")
+        Level.Game.HudType=string(class'CrowdControl_HudLMS');
+    else if(level.game.hudtype~="BonusPack.HudMutant")
+        Level.Game.HudType=string(class'CrowdControl_HudMutant');
+    else if(level.game.hudtype~="ut2k4assault.Hud_Assault")
+        Level.Game.HudType=string(class'CrowdControl_Hud_Assault');
+}
+
+simulated function SetPawnBoneScale(Pawn p, int Slot, optional float BoneScale, optional name BoneName)
+{
+    p.SetBoneScale(Slot,BoneScale,BoneName);
 }
 
 function MutateStatus(PlayerController Sender)
@@ -583,6 +612,25 @@ static function EffectConfig GetEffectInfo(int i)
     return Default.effects[i];
 }
 
+static event string GetDescriptionText(string PropName) {
+    // The value of PropName passed to the function should match the variable name
+    // being configured.
+    switch (PropName) {
+        case "effectFrequency":  return "How frequently the mutator will try to send effects";
+        case "effectChance":  return "The chance for an effect to go off each time the mutator tries to send an effect";
+    }
+    return Super.GetDescriptionText(PropName);
+}
+
+static function FillPlayInfo(PlayInfo PlayInfo) {
+    Super.FillPlayInfo(PlayInfo);  // Always begin with calling parent
+    
+    PlayInfo.AddSetting("Simulated Crowd Control", "effectFrequency", "Effect Frequency", 0, 2, "Text","3;1:300");
+    PlayInfo.AddSetting("Simulated Crowd Control", "effectChance", "Effect Chance", 0, 2, "Text","4;0.01:1.0");
+
+    PlayInfo.PopClass();
+}
+
 defaultproperties
 {
     bAddToServerPackages=True
@@ -622,16 +670,16 @@ defaultproperties
     effects(28)=(EffectName="return_ctf_flags",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
     effects(29)=(EffectName="big_head",quantityMin=0,quantityMax=0,durationMin=5,durationMax=120,enabled=true)
     effects(30)=(EffectName="headless",quantityMin=0,quantityMax=0,durationMin=5,durationMax=120,enabled=true)
-    effects(31)=(EffectName="limbless",quantityMin=0,quantityMax=0,durationMin=5,durationMax=120,enabled=true)
-    effects(32)=(EffectName="full_fat",quantityMin=0,quantityMax=0,durationMin=5,durationMax=120,enabled=true)
-    effects(33)=(EffectName="skin_and_bones",quantityMin=0,quantityMax=0,durationMin=5,durationMax=120,enabled=true)
-    effects(34)=(EffectName="low_grav",quantityMin=0,quantityMax=0,durationMin=10,durationMax=60,enabled=true)
-    effects(35)=(EffectName="ice_physics",quantityMin=0,quantityMax=0,durationMin=10,durationMax=60,enabled=true)
-    effects(36)=(EffectName="flood",quantityMin=0,quantityMax=0,durationMin=10,durationMax=60,enabled=true)
-    effects(37)=(EffectName="last_place_ultra_adrenaline",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
-    effects(38)=(EffectName="all_berserk",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
-    effects(39)=(EffectName="all_invisible",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
-    effects(40)=(EffectName="all_regen",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
+    //effects()=(EffectName="limbless",quantityMin=0,quantityMax=0,durationMin=5,durationMax=120,enabled=true)
+    //effects()=(EffectName="full_fat",quantityMin=0,quantityMax=0,durationMin=5,durationMax=120,enabled=true)
+    //effects()=(EffectName="skin_and_bones",quantityMin=0,quantityMax=0,durationMin=5,durationMax=120,enabled=true)
+    effects(31)=(EffectName="low_grav",quantityMin=0,quantityMax=0,durationMin=10,durationMax=60,enabled=true)
+    effects(32)=(EffectName="ice_physics",quantityMin=0,quantityMax=0,durationMin=10,durationMax=60,enabled=true)
+    effects(33)=(EffectName="flood",quantityMin=0,quantityMax=0,durationMin=10,durationMax=60,enabled=true)
+    effects(34)=(EffectName="last_place_ultra_adrenaline",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
+    effects(35)=(EffectName="all_berserk",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
+    effects(36)=(EffectName="all_invisible",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
+    effects(37)=(EffectName="all_regen",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
     botNames(0)="Jim"
     botNames(1)="James"
     botNames(2)="Jeremy"

@@ -55,7 +55,7 @@ function Init(CrowdControl cc, string addr)
 
 }
 
-function Timer() {
+simulated function Timer() {
     
     ticker++;
     if (IsConnected()) {
@@ -89,7 +89,7 @@ function ScoreKill(Pawn Killer,Pawn Other)
     ccEffects.ScoreKill(Killer,Other);
 }
 
-function handleMessage(string msg) {
+simulated function handleMessage(string msg) {
 
     local int id,type, duration;
     local string code,viewer;
@@ -178,7 +178,7 @@ function sendReply(int id, int status) {
 
 
 //I cannot believe I had to manually write my own version of ReceivedBinary
-function ManualReceiveBinary() {
+simulated function ManualReceiveBinary() {
     local byte B[255]; //I have to use a 255 length array even if I only want to read 1
     local int count,i;
     //PlayerMessage("Manually reading, have "$DataPending$" bytes pending");

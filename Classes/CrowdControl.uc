@@ -2,11 +2,16 @@ class CrowdControl extends Mutator config(CrowdControl);
 
 var bool initialized;
 var UT2k4CrowdControlLink ccLink;
-var UT2k4CCHUDOverlay hudOverlay;
 var config string crowd_control_addr;
 
+replication
+{
+    reliable if ( Role == ROLE_Authority )
+        SetPawnBoneScale;
+}
 
-function InitCC()
+
+simulated function InitCC()
 {
     if (Role!=ROLE_Authority)
     {
@@ -29,9 +34,9 @@ function InitCC()
         ccLink = Spawn(class'UT2k4CrowdControlLink');
         ccLink.Init(self,crowd_control_addr);
     }
-    
+
     Level.Game.Broadcast(self,"Crowd Control has initialized!");
-    
+
     initialized = True;
 }
 
@@ -56,20 +61,44 @@ function ServerTraveling(string URL, bool bItems)
 
 simulated function ModifyPlayer(Pawn Other)
 {
-    //I bet this doesn't work in multiplayer
-    if (PlayerController(Other.Controller)!=None){
-        if (PlayerController(Other.Controller).myHUD!=None){
-            if (hudOverlay==None){
-                hudOverlay=Spawn(class'UT2k4CCHUDOverlay');
-            }
-            PlayerController(Other.Controller).myHUD.AddHudOverlay(hudOverlay);
-        }
-    }
     if (ccLink!=None && ccLink.ccEffects!=None){
         ccLink.ccEffects.ModifyPlayer(Other);
     }
     if (NextMutator != None)
         NextMutator.ModifyPlayer(Other);
+}
+
+function ModifyLogin(out string Portal, out string Options)
+{
+    Super.ModifyLogin(Portal, Options);
+
+    //Conceptually stolen from UTComp Mutator:
+    // https://github.com/Deaod/UTComp
+    if(level.game.hudtype~="xInterface.HudCTeamDeathmatch")
+        Level.Game.HudType=string(class'CrowdControl_HudCTeamDeathMatch');
+    else if(level.game.hudtype~="xInterface.HudCDeathmatch")
+        Level.Game.HudType=string(class'CrowdControl_HudCDeathMatch');
+    else if(level.game.hudtype~="xInterface.HudCBombingRun")
+        Level.Game.HudType=string(class'CrowdControl_HudCBombingRun');
+    else if(level.game.hudtype~="xInterface.HudCCaptureTheFlag")
+        Level.Game.HudType=string(class'CrowdControl_HudCCaptureTheFlag');
+    else if(level.game.hudtype~="xInterface.HudCDoubleDomination")
+        Level.Game.HudType=string(class'CrowdControl_HudCDoubleDomination');
+    else if(level.game.hudtype~="Onslaught.ONSHUDOnslaught")
+        Level.Game.HudType=string(class'CrowdControl_ONSHUDOnslaught');
+    else if(level.game.hudtype~="SkaarjPack.HUDInvasion")
+        Level.Game.HudType=string(class'CrowdControl_HUDInvasion');
+    else if(level.game.hudtype~="BonusPack.HudLMS")
+        Level.Game.HudType=string(class'CrowdControl_HudLMS');
+    else if(level.game.hudtype~="BonusPack.HudMutant")
+        Level.Game.HudType=string(class'CrowdControl_HudMutant');
+    else if(level.game.hudtype~="ut2k4assault.Hud_Assault")
+        Level.Game.HudType=string(class'CrowdControl_Hud_Assault');
+}
+
+simulated function SetPawnBoneScale(Pawn p, int Slot, optional float BoneScale, optional name BoneName)
+{
+    p.SetBoneScale(Slot,BoneScale,BoneName);
 }
 
 //Changes both here and in link class, as well as saves the config

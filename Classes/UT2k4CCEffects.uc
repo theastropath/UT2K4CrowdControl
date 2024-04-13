@@ -85,7 +85,7 @@ var string targetPlayer;
 replication
 {
     reliable if ( Role == ROLE_Authority )
-        behindTimer,speedTimer,meleeTimer,iceTimer,vampireTimer,floodTimer,forceWeaponTimer,bFat,bFast,forcedWeapon,numAddedBots,targetPlayer,GetEffectList,bodyEffectTimer,bodyEffect,gravityTimer;
+        behindTimer,speedTimer,meleeTimer,iceTimer,vampireTimer,floodTimer,forceWeaponTimer,bFat,bFast,forcedWeapon,numAddedBots,targetPlayer,GetEffectList,bodyEffectTimer,bodyEffect,gravityTimer,setLimblessScale,SetAllBoneScale,ModifyPlayer,SetPawnBoneScale;
 }
 
 function Init(Mutator baseMut)
@@ -338,7 +338,7 @@ function ScoreKill(Pawn Killer,Pawn Other)
     }    
 }
 
-function ModifyPlayer(Pawn Other)
+simulated function ModifyPlayer(Pawn Other)
 {
     if (bodyEffectTimer>0) {
         if (bodyEffect==BE_BigHead){
@@ -346,18 +346,31 @@ function ModifyPlayer(Pawn Other)
         } else if (bodyEffect==BE_Headless){
             Other.SetHeadScale(HiddenScale);
         } else if (bodyEffect==BE_NoLimbs){
-            Other.SetBoneScale(0,HiddenScale,'lthigh');
-            Other.SetBoneScale(1,HiddenScale,'rthigh');
-            Other.SetBoneScale(2,HiddenScale,'rfarm');
-            Other.SetBoneScale(3,HiddenScale,'lfarm');
+            SetLimblessScale(Other);
         } else if (bodyEffect==BE_Fat){
             SetAllBoneScale(Other,FatScale);
         } else if (bodyEffect==BE_Skinny){
             SetAllBoneScale(Other,SkinnyScale);
         }
     }
+
+    if (speedTimer>0){
+        if (bFast){
+            Other.GroundSpeed = class'Pawn'.Default.GroundSpeed * 3;
+        } else {
+            Other.GroundSpeed = class'Pawn'.Default.GroundSpeed / 3;
+        }
+    }
 }
 
+simulated function SetPawnBoneScale(Pawn p, int Slot, optional float BoneScale, optional name BoneName)
+{
+    if (CrowdControl(baseMutator)!=None){
+        CrowdControl(baseMutator).SetPawnBoneScale(p,Slot,BoneScale,BoneName);
+    } else if (OfflineCrowdControl(baseMutator)!=None){
+        OfflineCrowdControl(baseMutator).SetPawnBoneScale(p,Slot,BoneScale,BoneName);
+    }
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////                               CROWD CONTROL UTILITY FUNCTIONS                                       ////
@@ -908,24 +921,38 @@ simulated function ForceAllPawnsToSpecificWeapon(class<Weapon> weaponClass)
     }
 }
 
-function RestoreBodyScale()
+simulated function RestoreBodyScale()
 {
     local Pawn p;
     local int i;
     foreach AllActors(class'Pawn',p){
-        for(i=0;i<=5;i++)
-        p.SetBoneScale(i,1.0);
+        p.SetHeadScale(1.0);
+        for(i=0;i<=20;i++)
+        SetPawnBoneScale(p,i);
     }
 }
 
-function SetAllBoneScale(Pawn p, float scale)
+simulated function SetAllBoneScale(Pawn p, float scale)
 {
-    p.SetBoneScale(0,scale,'lthigh');
-    p.SetBoneScale(1,scale,'rthigh');
-    p.SetBoneScale(2,scale,'rfarm');
-    p.SetBoneScale(3,scale,'lfarm');
-    p.SetBoneScale(4,scale,'head');
-    p.SetBoneScale(5,scale,'spine');
+    
+    SetPawnBoneScale(p,10,scale,'lthigh');
+    SetPawnBoneScale(p,11,scale,'rthigh');
+    SetPawnBoneScale(p,12,scale,'rfarm');
+    SetPawnBoneScale(p,13,scale,'lfarm');
+    SetPawnBoneScale(p,14,scale,'head');
+    SetPawnBoneScale(p,15,scale,'spine');
+    
+    //p.SetBoneScale(0,scale,p.RootBone);
+}
+
+simulated function SetLimblessScale(Pawn p)
+{
+    SetPawnBoneScale(p,10,HiddenScale,'Bip01 L Thigh');
+    SetPawnBoneScale(p,11,HiddenScale,'Bip01 R Thigh');
+    //p.SetBoneScale(12,HiddenScale,'rfarm');
+    //p.SetBoneScale(13,HiddenScale,'lfarm');
+    SetPawnBoneScale(p,12,HiddenScale,'rshoulder');
+    SetPawnBoneScale(p,13,HiddenScale,'lshoulder');
 }
 
 function SetMoonPhysics(bool enabled) {
@@ -1095,6 +1122,10 @@ function SetAllPlayersBehindView(bool val)
 
 function int ThirdPerson(String viewer, int duration)
 {
+    if (behindTimer>0) {
+        return TempFail;
+    }
+
     SetAllPlayersBehindView(True);
     
     if (duration==0){
@@ -1607,7 +1638,7 @@ function int BlueRedeemerShell(String viewer)
     return Success;
 }
 
-function int StartBigHeadMode(string viewer, int duration)
+simulated function int StartBigHeadMode(string viewer, int duration)
 {
     local Pawn p;
     local bool changed;
@@ -1641,7 +1672,7 @@ function int StartBigHeadMode(string viewer, int duration)
     return Success;
 }
 
-function int StartHeadlessMode(string viewer, int duration)
+simulated function int StartHeadlessMode(string viewer, int duration)
 {
     local Pawn p;
     local bool changed;
@@ -1675,7 +1706,7 @@ function int StartHeadlessMode(string viewer, int duration)
     return Success;
 }
 
-function int StartLimblessMode(string viewer, int duration)
+simulated function int StartLimblessMode(string viewer, int duration)
 {
     local Pawn p;
     local bool changed;
@@ -1686,10 +1717,7 @@ function int StartLimblessMode(string viewer, int duration)
 
     foreach AllActors(class'Pawn',p){
         changed=True;
-        p.SetBoneScale(0,HiddenScale,'lthigh');
-        p.SetBoneScale(1,HiddenScale,'rthigh');
-        p.SetBoneScale(2,HiddenScale,'rfarm');
-        p.SetBoneScale(3,HiddenScale,'lfarm');
+        SetLimblessScale(p);
     }
 
     //No pawns to change!
@@ -1706,7 +1734,7 @@ function int StartLimblessMode(string viewer, int duration)
     return Success;
 }
 
-function int StartFullFatMode(string viewer, int duration)
+simulated function int StartFullFatMode(string viewer, int duration)
 {
     local Pawn p;
     local bool changed;
@@ -1734,7 +1762,7 @@ function int StartFullFatMode(string viewer, int duration)
     return Success;
 }
 
-function int StartSkinAndBonesMode(string viewer, int duration)
+simulated function int StartSkinAndBonesMode(string viewer, int duration)
 {
     local Pawn p;
     local bool changed;
@@ -1936,7 +1964,7 @@ function int StartFlood(string viewer, int duration)
 
 //Effects missing that were in UT99
 //Spawn a bot (attack/defend)
-function int doCrowdControlEvent(string code, string param[5], string viewer, int type, int duration) {
+simulated function int doCrowdControlEvent(string code, string param[5], string viewer, int type, int duration) {
     switch(code) {
         case "sudden_death":  //Everyone loses all armour and goes down to one health
             return SuddenDeath(viewer);
@@ -2001,11 +2029,11 @@ function int doCrowdControlEvent(string code, string param[5], string viewer, in
         case "headless":
             return StartHeadlessMode(viewer,duration);
         case "limbless":
-            return StartLimblessMode(viewer,duration);
+            return StartLimblessMode(viewer,duration); //TODO: Make this work in multiplayer somehow
         case "full_fat":
-            return StartFullFatMode(viewer,duration);
+            return StartFullFatMode(viewer,duration); //TODO: Make this work in multiplayer somehow
         case "skin_and_bones":
-            return StartSkinAndBonesMode(viewer,duration);
+            return StartSkinAndBonesMode(viewer,duration); //TODO: Make this work in multiplayer somehow
         case "low_grav":
             return EnableMoonPhysics(viewer, duration); 
         case "ice_physics":
@@ -2034,4 +2062,6 @@ defaultproperties
       bHidden=True
       bAlwaysRelevant=True
       bNetTemporary=False
+      RemoteRole=ROLE_SimulatedProxy
+      NetUpdateFrequency=4.000000
 }

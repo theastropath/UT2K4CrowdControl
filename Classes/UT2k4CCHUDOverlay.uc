@@ -10,13 +10,16 @@ simulated function Render(Canvas C)
     local float FontDX, FontDY;
     local string effects[15];
     local int numEffects;
+    local color colorBefore;
 
     baseYPos=5*C.ClipY/7 + C.ClipY/401;
 
     C.Font = HUD(Owner).GetConsoleFont(C);
+    colorBefore = c.DrawColor;
     C.DrawColor.R = 255;
     C.DrawColor.G = 255;
     C.DrawColor.B = 255;
+    C.DrawColor.A = 255;
     C.TextSize ("A", FontDX, FontDY);
 
     if (ccEffects==None){
@@ -41,4 +44,5 @@ simulated function Render(Canvas C)
     } else {
         log("ccEffects is still none!");
     }
+    c.DrawColor=colorBefore;
 }
