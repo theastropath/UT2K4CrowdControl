@@ -77,6 +77,20 @@ var ZoneWater zone_waters[32];
 var int floodTimer;
 const FloodTimerDefault = 15;
 
+struct ZoneFog
+{
+    var name  zonename;
+    var bool  hasFog;
+    var float fogStart;
+    var float fogEnd;
+};
+var ZoneFog zone_fogs[32];
+var int fogTimer;
+const FogTimerDefault = 60;
+const HeavyFogStart = 4.0;
+const HeavyFogEnd   = 800.0;
+
+
 var int cfgMinPlayers;
 
 var bool bFat,bFast;
@@ -173,6 +187,10 @@ simulated function GetEffectList(out string effects[15], out int numEffects)
         effects[i]="Flood: "$floodTimer;
         i++;
     }
+    if (fogTimer > 0) {
+        effects[i]="Silent Hill: "$fogTimer;
+        i++;
+    }
     if (vampireTimer > 0) {
         effects[i]="Vampire: "$vampireTimer;
         i++;
@@ -245,6 +263,13 @@ function PeriodicUpdates()
             UpdateAllPawnsSwimState();
 
             Broadcast("The flood drains away...");
+        }
+    } 
+    if (fogTimer > 0) {
+        fogTimer--;
+        if (fogTimer <= 0) {
+            SetFog(False);
+            Broadcast("The fog drifts away...");
         }
     } 
     if (vampireTimer > 0) {
@@ -442,6 +467,49 @@ function SaveDefaultZoneWater(PhysicsVolume z)
         if( zone_waters[i].zonename == '' || z.name == zone_waters[i].zonename ) {
             zone_waters[i].zonename = z.name;
             zone_waters[i].water = z.bWaterVolume;
+            return;
+        }
+    }
+}
+function bool GetDefaultZoneFog(PhysicsVolume z)
+{
+    local int i;
+    for(i=0; i<ArrayCount(zone_fogs); i++) {
+        if( z.name == zone_fogs[i].zonename )
+            return zone_fogs[i].hasFog;
+    }
+    return class'PhysicsVolume'.Default.bDistanceFog;
+}
+
+function float GetDefaultZoneFogStart(PhysicsVolume z)
+{
+    local int i;
+    for(i=0; i<ArrayCount(zone_fogs); i++) {
+        if( z.name == zone_fogs[i].zonename )
+            return zone_fogs[i].fogStart;
+    }
+    return class'PhysicsVolume'.Default.DistanceFogStart;
+}
+
+function float GetDefaultZoneFogEnd(PhysicsVolume z)
+{
+    local int i;
+    for(i=0; i<ArrayCount(zone_fogs); i++) {
+        if( z.name == zone_fogs[i].zonename )
+            return zone_fogs[i].fogEnd;
+    }
+    return class'PhysicsVolume'.Default.DistanceFogEnd;
+}
+
+function SaveDefaultZoneFog(PhysicsVolume z)
+{
+    local int i;
+    for(i=0; i<ArrayCount(zone_fogs); i++) {
+        if( zone_fogs[i].zonename == '' || z.name == zone_fogs[i].zonename ) {
+            zone_fogs[i].zonename = z.name;
+            zone_fogs[i].hasFog = z.bDistanceFog;
+            zone_fogs[i].fogStart = z.DistanceFogStart;
+            zone_fogs[i].fogEnd = z.DistanceFogEnd;
             return;
         }
     }
@@ -1006,6 +1074,23 @@ function SetFlood(bool enabled) {
             Level.ObjectPool.FreeObject(z.VolumeEffect);
             z.VolumeEffect=None;
             z.FluidFriction=class'PhysicsVolume'.Default.FluidFriction;
+        }
+    }
+}
+
+function SetFog(bool enabled) {
+    local PhysicsVolume Z;
+    ForEach AllActors(class'PhysicsVolume', Z) {
+        if (enabled) {
+            SaveDefaultZoneFog(Z);
+            Z.bDistanceFog = True;
+            Z.DistanceFogStart = HeavyFogStart;
+            Z.DistanceFogEnd   = HeavyFogEnd;
+        }
+        else if (!enabled) {
+            Z.bDistanceFog = GetDefaultZoneFog(Z);
+            Z.DistanceFogStart = GetDefaultZoneFogStart(Z);
+            Z.DistanceFogEnd = GetDefaultZoneFogEnd(Z);
         }
     }
 }
@@ -1964,6 +2049,21 @@ function int StartFlood(string viewer, int duration)
     return Success;
 }
 
+function int StartFog(string viewer, int duration)
+{
+    if (fogTimer>0) {
+        return TempFail;
+    }
+    Broadcast("In their restless dreams,"@viewer@"saw that town.  Silent Hill.");
+
+    SetFog(True);
+    if (duration==0){
+        duration = FogTimerDefault;
+    }
+    fogTimer = duration;
+    return Success;
+}
+
 function int PlayTaunt(string viewer, optional name tauntSeq)
 {
     local UnrealPlayer p;
@@ -2184,6 +2284,8 @@ simulated function int doCrowdControlEvent(string code, string param[5], string 
             return SetAllPlayerAnnouncerVoice(viewer,"UnrealGame.UTClassicAnnouncer");//TODO: Make this work in multiplayer somehow
         case "announcer_sexy":
             return SetAllPlayerAnnouncerVoice(viewer,"UnrealGame.SexyFemaleAnnouncer");//TODO: Make this work in multiplayer somehow
+        case "silent_hill":
+            return StartFog(viewer, duration);
         default:
             Broadcast("Got Crowd Control Effect -   code: "$code$"   viewer: "$viewer );
             break;
