@@ -2221,6 +2221,17 @@ simulated function int SetAllPlayerAnnouncerVoice(string viewer, string announce
 ////                                  CROWD CONTROL EFFECT MAPPING                                       ////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+function HandleEffectSelectability(UT2k4CrowdControlLink ccLink)
+{
+    local bool isLocal;
+
+    isLocal = Level.NetMode!=NM_DedicatedServer && Level.NetMode!=NM_ListenServer;
+
+    ccLink.sendEffectSelectability("full_fat",isLocal);
+    ccLink.sendEffectSelectability("skin_and_bones",isLocal);
+    ccLink.sendEffectSelectability("limbless",isLocal);
+    ccLink.sendEffectSelectability("silent_hill",isLocal);
+}
 
 function int BranchCrowdControlType(string code, string param[5], string viewer, int type, int duration) {
     local int result;

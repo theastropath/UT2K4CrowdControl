@@ -20,6 +20,11 @@ const TempFail = 3;
 
 const CrowdControlPort = 43384;
 
+const cVISIBLE=0x80;
+const cNOTVISIBLE=0x81;
+const cSELECTABLE=0x82;
+const cNOTSELECTABLE=0x83;
+
 const ReconDefault = 5;
 
 const MILLISEC_TO_SEC=1000;
@@ -81,12 +86,37 @@ simulated function Timer() {
     
     ccEffects.PeriodicUpdates();
 
+    if (IsConnected()) {
+        ccEffects.HandleEffectSelectability(self);
+    }
 }
 
 //Called every time there is a kill
 function ScoreKill(Pawn Killer,Pawn Other)
 {
     ccEffects.ScoreKill(Killer,Other);
+}
+
+function sendEffectSelectability(string effect, bool selectable){
+    local string resp;
+    local byte respbyte[255];
+    local int i;
+    local int status;
+
+    if (selectable){
+        status=cSELECTABLE;
+    } else {
+        status=cNOTSELECTABLE;
+    }
+
+    resp = "{\"id\":0,\"type\":1,\"status\":"$status$",\"code\":\""$effect$"\"}";
+
+    for (i=0;i<Len(resp);i++){
+        respbyte[i]=Asc(Mid(resp,i,1));
+    }
+
+    //PlayerMessage(resp);
+    SendBinary(Len(resp)+1,respbyte);
 }
 
 simulated function handleMessage(string msg) {
