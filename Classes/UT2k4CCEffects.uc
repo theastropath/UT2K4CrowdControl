@@ -85,7 +85,7 @@ var string targetPlayer;
 replication
 {
     reliable if ( Role == ROLE_Authority )
-        behindTimer,speedTimer,meleeTimer,iceTimer,vampireTimer,floodTimer,forceWeaponTimer,bFat,bFast,forcedWeapon,numAddedBots,targetPlayer,GetEffectList,bodyEffectTimer,bodyEffect,gravityTimer,setLimblessScale,SetAllBoneScale,ModifyPlayer,SetPawnBoneScale;
+        behindTimer,speedTimer,meleeTimer,iceTimer,vampireTimer,floodTimer,forceWeaponTimer,bFat,bFast,forcedWeapon,numAddedBots,targetPlayer,GetEffectList,bodyEffectTimer,bodyEffect,gravityTimer,setLimblessScale,SetAllBoneScale,ModifyPlayer,SetPawnBoneScale,SetAllPlayerAnnouncerVoice;
 }
 
 function Init(Mutator baseMut)
@@ -1964,12 +1964,128 @@ function int StartFlood(string viewer, int duration)
     return Success;
 }
 
+function int PlayTaunt(string viewer, optional name tauntSeq)
+{
+    local UnrealPlayer p;
+    local bool found;
+
+    found=False;
+
+    foreach AllActors(class'UnrealPlayer',p){
+        if (p.Pawn==None){continue;}
+
+        if (tauntSeq!=''){
+            p.Taunt(tauntSeq);
+        } else {
+            p.RandomTaunt();
+        }
+        found=True;
+    }
+
+    if (!found){
+        return TempFail;
+    }
+
+    Broadcast(viewer@"made everyone wiggle!");
+
+    return Success;
+}
+
+function int TeamBalance(string viewer)
+{
+    local Pawn p;
+    local TeamGame tg;
+    local UnrealTeamInfo NewTeam;
+    local String playerName;
+    local bool found;
+    
+    tg=TeamGame(Level.Game);
+    if (tg==None){
+        return TempFail;
+    }
+
+    p = findPawnByScore(True,255); //Get Highest score player
+
+    if (p == None || p.Controller==None || p.PlayerReplicationInfo==None) {
+        return TempFail;
+    }
+    
+    playerName = p.Controller.GetHumanReadableName();
+
+    found=False;
+    foreach AllActors(class'UnrealTeamInfo',NewTeam){
+        if (newTeam!=p.Controller.PlayerReplicationInfo.Team){
+            found=True;
+            break;
+        }
+    }
+
+    if (NewTeam==None || found==False){
+        Broadcast("New team was none?");
+        return TempFail;
+    }
+
+    p.Controller.StartSpot=None;
+
+    if ( p.Controller.PlayerReplicationInfo.Team != None ) {
+        p.Controller.PlayerReplicationInfo.Team.RemoveFromTeam(p.Controller);
+    }
+
+    if (NewTeam.AddToTeam(p.Controller)){
+        tg.BroadcastLocalizedMessage( tg.GameMessageClass, 3, p.Controller.PlayerReplicationInfo, None, NewTeam );
+    }
+
+    p.PlayerChangedTeam();
+    p.NotifyTeamChanged();
+    p.Controller.Restart();
+
+    Broadcast(viewer@"thought the teams needed to be rebalanced, so moved "$playerName$" to the other team!");
+
+    return Success;
+}
+
+simulated function int SetAllPlayerAnnouncerVoice(string viewer, string announcer)
+{
+    local PlayerController pc;
+    local string voiceName;
+    local class<AnnouncerVoice> VoiceClass;
+    
+    voiceName="";
+    VoiceClass = class<AnnouncerVoice>(DynamicLoadObject(announcer,class'Class'));
+
+    foreach AllActors(class'PlayerController',pc){
+        if (pc.Pawn == None || pc.Pawn.Health<=0) { continue;}
+        
+        pc.StatusAnnouncer.Destroy();
+        pc.StatusAnnouncer = pc.Spawn(VoiceClass);
+        pc.RewardAnnouncer.Destroy();
+        pc.RewardAnnouncer = pc.Spawn(VoiceClass);
+        pc.PrecacheAnnouncements();
+
+        voiceName = VoiceClass.Default.AnnouncerName;
+    }
+
+    if (voiceName==""){
+        return TempFail;
+    }
+
+    Broadcast(viewer@"changed the announcer to "$voiceName);
+
+    return Success;
+
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////                                  CROWD CONTROL EFFECT MAPPING                                       ////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //Effects missing that were in UT99
 //Spawn a bot (attack/defend)
+
+//Ideas that could be added:
+//-Spawn a vehicle (all the ONSVehicle types, I guess) - would need various space checks and stuff
+//-Play a (random?) announcement
+
 simulated function int doCrowdControlEvent(string code, string param[5], string viewer, int type, int duration) {
     switch(code) {
         case "sudden_death":  //Everyone loses all armour and goes down to one health
@@ -2054,6 +2170,20 @@ simulated function int doCrowdControlEvent(string code, string param[5], string 
             return AllPlayersInvisible(viewer);
         case "all_regen":
             return AllPlayersRegen(viewer);
+        case "thrust":
+            return PlayTaunt(viewer,'PThrust'); //Not super happy with this - needs more tweaking
+        case "team_balance":
+            return TeamBalance(viewer);
+        case "announcer_male":
+            return SetAllPlayerAnnouncerVoice(viewer,"UnrealGame.MaleAnnouncer"); //TODO: Make this work in multiplayer somehow
+        case "announcer_female":
+            return SetAllPlayerAnnouncerVoice(viewer,"UnrealGame.FemaleAnnouncer");//TODO: Make this work in multiplayer somehow
+        case "announcer_ut2k3":
+            return SetAllPlayerAnnouncerVoice(viewer,"UnrealGame.ClassicAnnouncer");//TODO: Make this work in multiplayer somehow
+        case "announcer_ut99":
+            return SetAllPlayerAnnouncerVoice(viewer,"UnrealGame.UTClassicAnnouncer");//TODO: Make this work in multiplayer somehow
+        case "announcer_sexy":
+            return SetAllPlayerAnnouncerVoice(viewer,"UnrealGame.SexyFemaleAnnouncer");//TODO: Make this work in multiplayer somehow
         default:
             Broadcast("Got Crowd Control Effect -   code: "$code$"   viewer: "$viewer );
             break;

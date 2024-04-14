@@ -680,6 +680,8 @@ defaultproperties
     effects(35)=(EffectName="all_berserk",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
     effects(36)=(EffectName="all_invisible",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
     effects(37)=(EffectName="all_regen",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
+    effects(38)=(EffectName="thrust",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
+    effects(39)=(EffectName="team_balance",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
     botNames(0)="Jim"
     botNames(1)="James"
     botNames(2)="Jeremy"

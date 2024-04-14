@@ -4,6 +4,8 @@ using CrowdControl.Common;
 using CrowdControl.Games.Packs;
 using ConnectorType = CrowdControl.Common.ConnectorType;
 
+namespace CrowdControl.Games.Packs.UnrealTournament2004;
+
 public class UnrealTournament2004 : SimpleTCPPack
 {
     public override string Host => "0.0.0.0";
@@ -37,7 +39,7 @@ public class UnrealTournament2004 : SimpleTCPPack
         new Parameter("Minigun Bullets", "minigunammo"),
         new Parameter("Rockets", "rocketammo"),
         new Parameter("Shock Core", "shockammo"),
-        new Parameter("Lightning Charges", "sniperammo"),
+        new Parameter("Lightning Charges", "sniperammo")
     );
 
     public override EffectList Effects { get; } = new Effect[]
@@ -59,6 +61,8 @@ public class UnrealTournament2004 : SimpleTCPPack
         //new Effect("Spawn a Defending Bot (One Death)", "spawn_a_bot_defend"){Price = 10, Description = "This will spawn a bot on whatever team is has the least amount of players with orders to defend their base"},
         new Effect("Reset Domination Control Points", "reset_domination_control_points"){Price = 5, Description = "This will reset all control points in Domination Mode to neutral"},
         new Effect("Return Flags", "return_ctf_flags"){Price = 5, Description = "In Capture the Flag Mode, this will return all flags to their base"},
+        new Effect("Wiggle Time", "thrust"){Price = 1, Description = "Everyone gets wiggly!"},
+        new Effect("Switch First Place Player Team", "team_balance"){Price = 5, Description = "The player in first place switches to the other team!"},
         
         ////////////////////////////////////////////////////////////////
         
@@ -112,12 +116,22 @@ public class UnrealTournament2004 : SimpleTCPPack
         new Effect("Bonus Damage for All", "bonus_dmg") { Category = "Weapons & Damage", Price = 5, Description = "Pump up the damage on all players" },
         new Effect("Melee Only!", "melee_only") { Category = "Weapons & Damage", Price = 10, Description = "Never mind these guns, it's punching time!", Duration=60 },
         new Effect("Bonus Damage for Last Place", "last_place_bonus_dmg") { Category = "Weapons & Damage", Price = 5, Description = "Help out the last place player and grant them bonus damage!" },
-        new Effect("All Players Drop Current Weapon", "drop_selected_item") { Category = "Weapons & Damage", Price = 10, Description = "Who needs this weapon anyway..." }
+        new Effect("All Players Drop Current Weapon", "drop_selected_item") { Category = "Weapons & Damage", Price = 10, Description = "Who needs this weapon anyway..." },
+
+        //new("Announcer Voice", "announcer", ItemKind.BidWar)
+        //{
+        //    Parameters = new ParameterDef("Voice", "voice_param",
+        //        new("Male Announcer", "male"),
+        //        new("Female Announcer", "female"),
+        //        new("UT2003 Announcer", "ut2k3"),
+        //        new("UT99 Announcer", "ut99"),
+        //        new("Sexy Female Announcer", "sexy"))
+        //},
 
         new Effect("Full Adrenaline", "full_adrenaline") { Category = "Adrenaline & Combos", Price = 2, Description = "Max out all players adrenaline!" },
-        new Effect("Ultra Adrenaline Powers for Last Place", "last_place_ultra_adrenaline") { Category = "Adrenaline & Combos", Price = 10, Description = "The player in last place gains all of the adrenaline powers at once!" }
-        new Effect("Invisible Players", "all_invisible") { Category = "Adrenaline & Combos", Price = 5, Description = "All players become temporarily invisible!" }
-        new Effect("Berserker!", "all_berserk") { Category = "Adrenaline & Combos", Price = 5, Description = "All players become berserk temporarily!" }
+        new Effect("Ultra Adrenaline Powers for Last Place", "last_place_ultra_adrenaline") { Category = "Adrenaline & Combos", Price = 10, Description = "The player in last place gains all of the adrenaline powers at once!" },
+        new Effect("Invisible Players", "all_invisible") { Category = "Adrenaline & Combos", Price = 5, Description = "All players become temporarily invisible!" },
+        new Effect("Berserker!", "all_berserk") { Category = "Adrenaline & Combos", Price = 5, Description = "All players become berserk temporarily!" },
         new Effect("All Players Regenerate", "all_regen") { Category = "Adrenaline & Combos", Price = 5, Description = "All players begin to regenerate health temporarily!" }
     };
 }
