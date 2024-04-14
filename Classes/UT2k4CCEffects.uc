@@ -90,6 +90,9 @@ const FogTimerDefault = 60;
 const HeavyFogStart = 4.0;
 const HeavyFogEnd   = 800.0;
 
+var int bounceTimer;
+const BounceTimerDefault = 60;
+var Vector BouncyCastleVelocity;
 
 var int cfgMinPlayers;
 
@@ -99,7 +102,7 @@ var string targetPlayer;
 replication
 {
     reliable if ( Role == ROLE_Authority )
-        behindTimer,speedTimer,meleeTimer,iceTimer,vampireTimer,floodTimer,forceWeaponTimer,bFat,bFast,forcedWeapon,numAddedBots,targetPlayer,GetEffectList,bodyEffectTimer,bodyEffect,gravityTimer,setLimblessScale,SetAllBoneScale,ModifyPlayer,SetPawnBoneScale,SetAllPlayerAnnouncerVoice;
+        behindTimer,speedTimer,meleeTimer,iceTimer,vampireTimer,floodTimer,forceWeaponTimer,bFat,bFast,forcedWeapon,numAddedBots,targetPlayer,GetEffectList,bodyEffectTimer,bodyEffect,gravityTimer,setLimblessScale,SetAllBoneScale,ModifyPlayer,SetPawnBoneScale,SetAllPlayerAnnouncerVoice,fogTimer,bounceTimer;
 }
 
 function Init(Mutator baseMut)
@@ -114,6 +117,7 @@ function Init(Mutator baseMut)
     NormalGravity=class'PhysicsVolume'.Default.Gravity;
     //FloatGrav=vect(0,0,0.15);
     MoonGrav=vect(0,0,-100);  
+    BouncyCastleVelocity=vect(0,0,600);  
     
     for (i=0;i<MaxAddedBots;i++){
         added_bots[i]=None;
@@ -189,6 +193,10 @@ simulated function GetEffectList(out string effects[15], out int numEffects)
     }
     if (fogTimer > 0) {
         effects[i]="Silent Hill: "$fogTimer;
+        i++;
+    }
+    if (bounceTimer > 0) {
+        effects[i]="Bouncy Castle: "$bounceTimer;
         i++;
     }
     if (vampireTimer > 0) {
@@ -270,6 +278,14 @@ function PeriodicUpdates()
         if (fogTimer <= 0) {
             SetFog(False);
             Broadcast("The fog drifts away...");
+        }
+    } 
+    if (bounceTimer > 0) {
+        bounceTimer--;
+        if (bounceTimer <= 0) {
+            Broadcast("The bouncy castle disappeared...");
+        } else if ((bounceTimer % 2) == 0){
+            BounceAllPlayers();
         }
     } 
     if (vampireTimer > 0) {
@@ -1115,6 +1131,21 @@ function UpdateAllPawnsSwimState()
             }
         }
     }
+}
+
+function BounceAllPlayers()
+{
+    local Pawn P;
+    
+    foreach AllActors(class'Pawn',P) {
+        if ( (P == None) || (P.Physics == PHYS_None) || (Vehicle(P) != None) || (P.DrivenVehicle != None) || p.Base==None || p.HeadVolume.bWaterVolume) { continue; }
+
+        if ( P.Physics == PHYS_Walking ){
+            P.SetPhysics(PHYS_Falling);
+        }
+        P.Velocity =  BouncyCastleVelocity;
+        //P.Acceleration = vect(0,0,0);
+    }    
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2064,6 +2095,22 @@ function int StartFog(string viewer, int duration)
     return Success;
 }
 
+function int StartBounce(string viewer, int duration)
+{
+    if (bounceTimer>0) {
+        return TempFail;
+    }
+
+    Broadcast(viewer@"threw everyone into the bouncy castle!");
+
+    if (duration==0){
+        duration = BounceTimerDefault;
+    }
+    bounceTimer = duration;
+    return Success;
+}
+
+
 function int PlayTaunt(string viewer, optional name tauntSeq)
 {
     local UnrealPlayer p;
@@ -2285,7 +2332,9 @@ simulated function int doCrowdControlEvent(string code, string param[5], string 
         case "announcer_sexy":
             return SetAllPlayerAnnouncerVoice(viewer,"UnrealGame.SexyFemaleAnnouncer");//TODO: Make this work in multiplayer somehow
         case "silent_hill":
-            return StartFog(viewer, duration);
+            return StartFog(viewer, duration);//TODO: Make this work in multiplayer somehow
+        case "bouncy_castle":
+            return StartBounce(viewer, duration); 
         default:
             Broadcast("Got Crowd Control Effect -   code: "$code$"   viewer: "$viewer );
             break;

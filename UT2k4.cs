@@ -63,7 +63,8 @@ public class UnrealTournament2004 : SimpleTCPPack
         new Effect("Return Flags", "return_ctf_flags"){Price = 5, Description = "In Capture the Flag Mode, this will return all flags to their base"},
         new Effect("Wiggle Time", "thrust"){Price = 1, Description = "Everyone gets wiggly!"},
         new Effect("Switch First Place Player Team", "team_balance"){Price = 5, Description = "The player in first place switches to the other team!"},
-        new Effect("Silent Hill Mode", "silent_hill"){Price = 10, Description = "The whole level becomes as foggy as Silent Hill!"},
+        new Effect("Bouncy Castle", "bouncy_castle"){Price = 5, Description = "Everyone gets periodically bounced up into the air!"},
+        //new Effect("Silent Hill Mode", "silent_hill"){Price = 10, Description = "The whole level becomes as foggy as Silent Hill!"},
         
         ////////////////////////////////////////////////////////////////
         
