@@ -7,6 +7,13 @@ const Failed = 1;
 const NotAvail = 2;
 const TempFail = 3;
 
+const CCType_Test       = 0x00;
+const CCType_Start      = 0x01;
+const CCType_Stop       = 0x02;
+const CCType_PlayerInfo = 0xE0; //Not used for us
+const CCType_Login      = 0xF0; //Not used for us
+const CCType_KeepAlive  = 0xFF; //Not used for us
+
 var int behindTimer;
 const BehindTimerDefault = 15;
 
@@ -237,8 +244,7 @@ function PeriodicUpdates()
     if (behindTimer > 0) {
         behindTimer--;
         if (behindTimer <= 0) {
-            SetAllPlayersBehindView(False);
-            Broadcast("Returning to first person view...");
+            StopCrowdControlEvent("third_person",true);
         } else {
             SetAllPlayersBehindView(True);
         }
@@ -247,43 +253,37 @@ function PeriodicUpdates()
     if (speedTimer > 0) {
         speedTimer--;
         if (speedTimer <= 0) {
-            SetAllPlayersGroundSpeed(class'Pawn'.Default.GroundSpeed);
-            Broadcast("Returning to normal move speed...");
+            StopCrowdControlEvent("gotta_go_fast",true);
         }
     }  
     if (iceTimer > 0) {
         iceTimer--;
         if (iceTimer <= 0) {
-            SetIcePhysics(False);
-            Broadcast("The ground thaws...");
+            StopCrowdControlEvent("ice_physics",true);
         }
     } 
     if (meleeTimer > 0) {
         meleeTimer--;
         if (meleeTimer <= 0) {
-            Broadcast("You may use ranged weapons again...");
+            StopCrowdControlEvent("melee_only",true);
         }
     }  
     if (floodTimer > 0) {
         floodTimer--;
         if (floodTimer <= 0) {
-            SetFlood(False);
-            UpdateAllPawnsSwimState();
-
-            Broadcast("The flood drains away...");
+            StopCrowdControlEvent("flood",true);
         }
     } 
     if (fogTimer > 0) {
         fogTimer--;
         if (fogTimer <= 0) {
-            SetFog(False);
-            Broadcast("The fog drifts away...");
+            StopCrowdControlEvent("flood",true);
         }
     } 
     if (bounceTimer > 0) {
         bounceTimer--;
         if (bounceTimer <= 0) {
-            Broadcast("The bouncy castle disappeared...");
+            StopCrowdControlEvent("bouncy_castle",true);
         } else if ((bounceTimer % 2) == 0){
             BounceAllPlayers();
         }
@@ -291,31 +291,26 @@ function PeriodicUpdates()
     if (vampireTimer > 0) {
         vampireTimer--;
         if (vampireTimer <= 0) {
-            RemoveGameRule(class'VampireGameRules');
-            Broadcast("You no longer feed on the blood of others...");
+            StopCrowdControlEvent("vampire_mode",true);
         }
     }  
     
     if (forceWeaponTimer > 0) {
         forceWeaponTimer--;
         if (forceWeaponTimer <= 0) {
-            Broadcast("You can use any weapon again...");
-            forcedWeapon = None;
+            StopCrowdControlEvent("force_weapon_use",true);
         }
     }  
     if (bodyEffectTimer > 0) {
         bodyEffectTimer--;
         if (bodyEffectTimer <= 0) {
-            Broadcast("Your body returns to normal...");
-            RestoreBodyScale();
-            BodyEffect = BE_None;
+            StopCrowdControlEvent("big_head",true);
         }
     }  
     if (gravityTimer > 0) {
         gravityTimer--;
         if (gravityTimer <= 0) {
-            SetMoonPhysics(False);
-            Broadcast("Gravity returns to normal...");
+            StopCrowdControlEvent("low_grav",true);
         }
     }  
     
@@ -1143,7 +1138,7 @@ function BounceAllPlayers()
         if ( P.Physics == PHYS_Walking ){
             P.SetPhysics(PHYS_Falling);
         }
-        P.Velocity =  BouncyCastleVelocity;
+        P.Velocity.Z +=  BouncyCastleVelocity.Z;
         //P.Acceleration = vect(0,0,0);
     }    
 }
@@ -2225,6 +2220,138 @@ simulated function int SetAllPlayerAnnouncerVoice(string viewer, string announce
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////                                  CROWD CONTROL EFFECT MAPPING                                       ////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+function int BranchCrowdControlType(string code, string param[5], string viewer, int type, int duration) {
+    local int result;
+
+    switch (type){
+        case CCType_Start:
+            result = doCrowdControlEvent(code,param,viewer,type,duration);
+            break;
+        case CCType_Stop:
+            if (code==""){
+                //Stop all
+                StopAllCrowdControlEvents();
+            } else {
+                //Stop specific effect
+                result = StopCrowdControlEvent(code);
+            }
+            break;
+        default:
+            result = Failed;
+            break;
+    }
+
+    return result;
+}
+
+//Make sure to add any timed effects into this list
+function StopAllCrowdControlEvents()
+{
+    StopCrowdControlEvent("third_person");
+    StopCrowdControlEvent("gotta_go_fast"); //and gotta_go_slow, first_place_slow
+    StopCrowdControlEvent("ice_physics");
+    StopCrowdControlEvent("melee_only"); //and all forced weapon modes
+    StopCrowdControlEvent("vampire_mode");
+    StopCrowdControlEvent("big_head"); //and all body horror effects
+    StopCrowdControlEvent("low_grav");
+    StopCrowdControlEvent("flood");
+    StopCrowdControlEvent("silent_hill");
+    StopCrowdControlEvent("bouncy_castle");
+}
+
+function int StopCrowdControlEvent(string code, optional bool bKnownStop)
+{
+    switch(code) {
+        case "third_person":
+            if (bKnownStop || behindTimer > 0){
+                SetAllPlayersBehindView(False);
+                Broadcast("Returning to first person view...");
+                behindTimer=0;
+            }
+            break;
+        case "gotta_go_fast":
+        case "gotta_go_slow":
+        case "first_place_slow":
+            if (bKnownStop || speedTimer > 0){
+                SetAllPlayersGroundSpeed(class'Pawn'.Default.GroundSpeed);
+                Broadcast("Returning to normal move speed...");
+                speedTimer=0;
+            }
+            break;
+        case "ice_physics":
+            if (bKnownStop || iceTimer > 0){
+                SetIcePhysics(False);
+                Broadcast("The ground thaws...");
+                iceTimer=0;
+            }
+            break;
+        case "melee_only":
+            if (bKnownStop || meleeTimer > 0){
+                Broadcast("You may use ranged weapons again...");
+                meleeTimer=0;
+            }
+            break;
+        case "force_weapon_use":
+        case "force_instagib":
+        case "force_redeemer":
+            if (bKnownStop || forceWeaponTimer > 0){
+                Broadcast("You can use any weapon again...");
+                forcedWeapon = None;
+                forceWeaponTimer=0;
+            }
+            break;
+        case "vampire_mode":
+            if (bKnownStop || vampireTimer > 0){
+                RemoveGameRule(class'VampireGameRules');
+                Broadcast("You no longer feed on the blood of others...");
+                vampireTimer=0;
+            }
+            break;
+        case "big_head":
+        case "headless":
+        case "limbless":
+        case "full_fat":
+        case "skin_and_bones":
+            if (bKnownStop || bodyEffectTimer > 0){
+                Broadcast("Your body returns to normal...");
+                RestoreBodyScale();
+                BodyEffect = BE_None;
+                bodyEffectTimer=0;
+            }
+            break;
+        case "low_grav":
+            if (bKnownStop || gravityTimer > 0){
+                SetMoonPhysics(False);
+                Broadcast("Gravity returns to normal...");
+                gravityTimer=0;
+            }
+            break;
+        case "flood":
+            if (bKnownStop || floodTimer > 0){
+                SetFlood(False);
+                UpdateAllPawnsSwimState();
+                Broadcast("The flood drains away...");
+                floodTimer=0;
+            }
+            break;
+        case "silent_hill":
+            if (bKnownStop || fogTimer > 0){
+                SetFog(False);
+                Broadcast("The fog drifts away...");
+                fogTimer=0;
+            }
+            break;
+        case "bouncy_castle":
+            if (bKnownStop || bounceTimer > 0){
+                Broadcast("The bouncy castle disappeared...");
+                bounceTimer=0;
+            }
+            break;
+    }
+    return Success;
+}
 
 //Effects missing that were in UT99
 //Spawn a bot (attack/defend)

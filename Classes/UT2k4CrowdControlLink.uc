@@ -114,7 +114,7 @@ simulated function handleMessage(string msg) {
             param[i] = jmsg.get("parameters", i);
         }
 
-        result = ccEffects.doCrowdControlEvent(code,param,viewer,type,duration);
+        result = ccEffects.BranchCrowdControlType(code,param,viewer,type,duration);
 
         sendReply(id,result);
     } else {
