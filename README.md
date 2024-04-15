@@ -26,7 +26,7 @@ At the moment, there is no support for using Crowd Control in the single player 
 
 ## Feedback
   
-Join the Discord server to discuss this mod or to provide feedback: https://discord.gg/GYqqDdAzzW
+Join the Discord server to discuss this mod or to provide feedback: https://mods4ever.com/discord
 
   
 
