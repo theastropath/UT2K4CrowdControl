@@ -58,10 +58,20 @@ def randomWeapon():
 
     return random.choice(weapon).lower()
 
+def randomAnnouncer():
+    announce = []
+    announce.append('UnrealGame.MaleAnnouncer')
+    announce.append('UnrealGame.FemaleAnnouncer')
+    announce.append('UnrealGame.ClassicAnnouncer')
+    announce.append('UnrealGame.UTClassicAnnouncer')
+    announce.append('UnrealGame.SexyFemaleAnnouncer')
+
+    return random.choice(announce)
+
 
 def pickEffect():
     effects = []
-
+    
     effects.append(("sudden_death",None))
     effects.append(("full_heal",None))
     effects.append(("full_armour",None))
@@ -103,6 +113,11 @@ def pickEffect():
     effects.append(("all_berserk",None))
     effects.append(("all_invisible",None))
     effects.append(("all_regen",None))
+    effects.append(("thrust",None))
+    effects.append(("team_balance",None))
+    effects.append(("bouncy_castle",None))
+    effects.append(("silent_hill",None))
+    effects.append(("announcer",[randomAnnouncer()]))
 
     return random.choice(effects)
 

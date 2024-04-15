@@ -2256,6 +2256,7 @@ function HandleEffectSelectability(UT2k4CrowdControlLink ccLink)
     ccLink.sendEffectSelectability("skin_and_bones",isLocal);
     ccLink.sendEffectSelectability("limbless",isLocal);
     ccLink.sendEffectSelectability("silent_hill",isLocal);
+    ccLink.sendEffectSelectability("announcer",isLocal);
 
     ccLink.sendEffectSelectability("reset_domination_control_points",xDoubleDom(Level.Game)!=None);
     ccLink.sendEffectSelectability("return_ctf_flags",CTFGame(Level.Game)!=None);
@@ -2494,16 +2495,8 @@ simulated function int doCrowdControlEvent(string code, string param[5], string 
             return PlayTaunt(viewer,'PThrust'); //Not super happy with this - needs more tweaking
         case "team_balance":
             return TeamBalance(viewer);
-        case "announcer_male":
-            return SetAllPlayerAnnouncerVoice(viewer,"UnrealGame.MaleAnnouncer"); //TODO: Make this work in multiplayer somehow
-        case "announcer_female":
-            return SetAllPlayerAnnouncerVoice(viewer,"UnrealGame.FemaleAnnouncer");//TODO: Make this work in multiplayer somehow
-        case "announcer_ut2k3":
-            return SetAllPlayerAnnouncerVoice(viewer,"UnrealGame.ClassicAnnouncer");//TODO: Make this work in multiplayer somehow
-        case "announcer_ut99":
-            return SetAllPlayerAnnouncerVoice(viewer,"UnrealGame.UTClassicAnnouncer");//TODO: Make this work in multiplayer somehow
-        case "announcer_sexy":
-            return SetAllPlayerAnnouncerVoice(viewer,"UnrealGame.SexyFemaleAnnouncer");//TODO: Make this work in multiplayer somehow
+        case "announcer":
+            return SetAllPlayerAnnouncerVoice(viewer,param[0]); //TODO: Make this work in multiplayer somehow
         case "silent_hill":
             return StartFog(viewer, duration);//TODO: Make this work in multiplayer somehow
         case "bouncy_castle":

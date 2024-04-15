@@ -134,6 +134,17 @@ function String PickRandomWeapon(){
     return "";
 }
 
+function String PickRandomAnnouncer(){
+    switch(Rand(5)){
+        case(0): return "UnrealGame.MaleAnnouncer";
+        case(1): return "UnrealGame.FemaleAnnouncer";
+        case(2): return "UnrealGame.ClassicAnnouncer";
+        case(3): return "UnrealGame.UTClassicAnnouncer";
+        case(4): return "UnrealGame.SexyFemaleAnnouncer";
+    }
+    return "";
+}
+
 function int RandomOfflineEffects()
 {
     local string param[5];
@@ -182,6 +193,9 @@ function int RandomOfflineEffects()
         case "spawn_a_bot_attack":
         case "spawn_a_bot_defend":
             viewer = PickRandomName();
+            break;
+        case "announcer":
+            param[0]=PickRandomAnnouncer();
             break;
     }
     
@@ -707,11 +721,7 @@ defaultproperties
     effects(37)=(EffectName="all_regen",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
     effects(38)=(EffectName="thrust",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
     effects(39)=(EffectName="team_balance",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
-    effects(40)=(EffectName="announcer_male",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
-    effects(41)=(EffectName="announcer_female",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
-    effects(42)=(EffectName="announcer_ut2k3",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
-    effects(43)=(EffectName="announcer_ut99",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
-    effects(44)=(EffectName="announcer_sexy",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
+    effects(40)=(EffectName="announcer",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
     botNames(0)="Jim"
     botNames(1)="James"
     botNames(2)="Jeremy"

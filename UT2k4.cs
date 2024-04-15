@@ -42,6 +42,15 @@ public class UnrealTournament2004 : SimpleTCPPack
         new Parameter("Lightning Charges", "sniperammo")
     );
 
+    //Announcer List
+    private static readonly ParameterDef announcerList = new("Announcer", "announcer",
+        new Parameter("Male Announcer", "UnrealGame.MaleAnnouncer"),
+        new Parameter("Female Announcer", "UnrealGame.FemaleAnnouncer"),
+        new Parameter("UT2003 Announcer", "UnrealGame.ClassicAnnouncer"),
+        new Parameter("UT99 Announcer", "UnrealGame.UTClassicAnnouncer"),
+        new Parameter("Sexy Female Announcer", "UnrealGame.SexyFemaleAnnouncer")
+    );
+
     public override EffectList Effects { get; } = new Effect[]
     {
         //General Effects
@@ -65,7 +74,12 @@ public class UnrealTournament2004 : SimpleTCPPack
         new Effect("Switch First Place Player Team", "team_balance"){Price = 5, Description = "The player in first place switches to the other team!"},
         new Effect("Bouncy Castle", "bouncy_castle"){Price = 5, Description = "Everyone gets periodically bounced up into the air!"},
         new Effect("Silent Hill Mode", "silent_hill"){Price = 10, Description = "The whole level becomes as foggy as Silent Hill!"},
-        
+        new Effect("Select Announcer Voice", "announcer")
+        {
+            Parameters = announcerList,
+            Price = 10,
+            Description = "Select what announcer the player should hear in-game!"
+        },
         ////////////////////////////////////////////////////////////////
         
         //new Effect("Health and Armor","health",ItemKind.Folder),
