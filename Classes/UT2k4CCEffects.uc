@@ -2218,6 +2218,9 @@ simulated function int SetAllPlayerAnnouncerVoice(string viewer, string announce
     local string voiceName;
     local class<AnnouncerVoice> VoiceClass;
     
+    if (!isLocal){
+        return TempFail;
+    }
     voiceName="";
     VoiceClass = class<AnnouncerVoice>(DynamicLoadObject(announcer,class'Class'));
 

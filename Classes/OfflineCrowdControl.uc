@@ -707,6 +707,11 @@ defaultproperties
     effects(37)=(EffectName="all_regen",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
     effects(38)=(EffectName="thrust",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
     effects(39)=(EffectName="team_balance",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
+    effects(40)=(EffectName="announcer_male",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
+    effects(41)=(EffectName="announcer_female",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
+    effects(42)=(EffectName="announcer_ut2k3",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
+    effects(43)=(EffectName="announcer_ut99",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
+    effects(44)=(EffectName="announcer_sexy",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
     botNames(0)="Jim"
     botNames(1)="James"
     botNames(2)="Jeremy"
