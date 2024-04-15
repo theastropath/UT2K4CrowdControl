@@ -106,6 +106,8 @@ var int cfgMinPlayers;
 var bool bFat,bFast;
 var string targetPlayer;
 
+var bool isLocal;
+
 replication
 {
     reliable if ( Role == ROLE_Authority )
@@ -125,7 +127,9 @@ function Init(Mutator baseMut)
     //FloatGrav=vect(0,0,0.15);
     MoonGrav=vect(0,0,-100);  
     BouncyCastleVelocity=vect(0,0,600);  
-    
+
+    isLocal = Level.NetMode!=NM_DedicatedServer && Level.NetMode!=NM_ListenServer;
+
     for (i=0;i<MaxAddedBots;i++){
         added_bots[i]=None;
     }
@@ -277,7 +281,7 @@ function PeriodicUpdates()
     if (fogTimer > 0) {
         fogTimer--;
         if (fogTimer <= 0) {
-            StopCrowdControlEvent("flood",true);
+            StopCrowdControlEvent("silent_hill",true);
         }
     } 
     if (bounceTimer > 0) {
@@ -1117,8 +1121,10 @@ function UpdateAllPawnsSwimState()
             if (p.HeadVolume.bWaterVolume) {
                 p.setPhysics(PHYS_Swimming);
                 p.SetBase(None);
+                p.BreathTime = p.UnderWaterTime;
             } else {
                 p.setPhysics(PHYS_Falling);
+                p.BreathTime = -1.0;
             }
 
             if (p.IsPlayerPawn()){
@@ -1141,6 +1147,11 @@ function BounceAllPlayers()
         P.Velocity.Z +=  BouncyCastleVelocity.Z;
         //P.Acceleration = vect(0,0,0);
     }    
+}
+
+function bool IsGameActive()
+{
+    return !Level.Game.bWaitingToStartMatch && !Level.Game.bGameEnded;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1828,6 +1839,10 @@ simulated function int StartLimblessMode(string viewer, int duration)
     local Pawn p;
     local bool changed;
 
+    if (!isLocal){
+        return TempFail;
+    }
+
     if (bodyEffectTimer>0) {
         return TempFail;
     }
@@ -1856,6 +1871,10 @@ simulated function int StartFullFatMode(string viewer, int duration)
     local Pawn p;
     local bool changed;
 
+    if (!isLocal){
+        return TempFail;
+    }
+
     if (bodyEffectTimer>0) {
         return TempFail;
     }
@@ -1883,6 +1902,10 @@ simulated function int StartSkinAndBonesMode(string viewer, int duration)
 {
     local Pawn p;
     local bool changed;
+
+    if (!isLocal){
+        return TempFail;
+    }
 
     if (bodyEffectTimer>0) {
         return TempFail;
@@ -2077,6 +2100,9 @@ function int StartFlood(string viewer, int duration)
 
 function int StartFog(string viewer, int duration)
 {
+    if (!isLocal){
+        return TempFail;
+    }
     if (fogTimer>0) {
         return TempFail;
     }
@@ -2223,10 +2249,6 @@ simulated function int SetAllPlayerAnnouncerVoice(string viewer, string announce
 
 function HandleEffectSelectability(UT2k4CrowdControlLink ccLink)
 {
-    local bool isLocal;
-
-    isLocal = Level.NetMode!=NM_DedicatedServer && Level.NetMode!=NM_ListenServer;
-
     ccLink.sendEffectSelectability("full_fat",isLocal);
     ccLink.sendEffectSelectability("skin_and_bones",isLocal);
     ccLink.sendEffectSelectability("limbless",isLocal);
@@ -2372,6 +2394,12 @@ function int StopCrowdControlEvent(string code, optional bool bKnownStop)
 //-Play a (random?) announcement
 
 simulated function int doCrowdControlEvent(string code, string param[5], string viewer, int type, int duration) {
+    
+    //Universal checks
+    if(!IsGameActive()){ //Only allow effects while the game is actually active
+        return TempFail;
+    }
+    
     switch(code) {
         case "sudden_death":  //Everyone loses all armour and goes down to one health
             return SuddenDeath(viewer);
