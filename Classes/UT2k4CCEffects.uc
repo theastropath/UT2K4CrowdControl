@@ -2253,6 +2253,10 @@ function HandleEffectSelectability(UT2k4CrowdControlLink ccLink)
     ccLink.sendEffectSelectability("skin_and_bones",isLocal);
     ccLink.sendEffectSelectability("limbless",isLocal);
     ccLink.sendEffectSelectability("silent_hill",isLocal);
+
+    ccLink.sendEffectSelectability("reset_domination_control_points",xDoubleDom(Level.Game)!=None);
+    ccLink.sendEffectSelectability("return_ctf_flags",CTFGame(Level.Game)!=None);
+    ccLink.sendEffectSelectability("team_balance",TeamGame(Level.Game)!=None);
 }
 
 function int BranchCrowdControlType(string code, string param[5], string viewer, int type, int duration) {
