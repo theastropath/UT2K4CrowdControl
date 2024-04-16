@@ -46,7 +46,6 @@ function ShuffleItems(Actor a)
             if (bShuffleWeaponsWithOthers){continue;}
             weapons[num_weapons++] = item;
         } else if (WildcardBase(item)!=None){
-            log("Ignoring WildcardBase "$item);
             continue; //Ignore these for now, until we come up with a better solution
         } else {
             if(!bShuffleHealth){
@@ -59,7 +58,6 @@ function ShuffleItems(Actor a)
                 if (UDamageCharger(item)!=None){continue;}
             }
             if (RandoWeaponBase(item)!=None){
-                log("Looking at shuffling "$item.Name);
                 if (!bShuffleWeapons) {continue;}
                 if (!bShuffleSupers && RandoWeaponBase(item).isSuper){continue;}
             }
