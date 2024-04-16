@@ -1,9 +1,34 @@
 class Randomizer extends Mutator;
 
-var config bool bShuffleSupers, bShuffleWeapons, bShuffleHealth, bShuffleAmmo, bShuffleAdrenaline, bShuffleOther;
+var config bool bShuffleSupers, bShuffleWeapons, bShuffleHealth, bShuffleAmmo, bShuffleAdrenaline, bShuffleOther,bShuffleWeaponsWithOthers;
+
+
+function bool CheckReplacement( Actor Other, out byte bSuperRelevant )
+{
+    local RandoWeaponBase rwb;
+    if (bShuffleWeaponsWithOthers && xWeaponBase(Other) != None ){
+        return false; //Just despawn them, we've already replaced them
+    }
+
+    return True;
+}
+
+function ReplaceWeaponBases()
+{
+    local xWeaponBase weapBase;
+    local RandoWeaponBase rwb;
+
+    foreach AllActors(class'xWeaponBase',weapBase){
+        rwb=Spawn(class'RandoWeaponBase',weapBase.Owner,weapBase.tag,weapBase.Location,weapBase.Rotation);
+        rwb.SetWeaponType(weapBase.WeaponType);
+    }
+}
 
 function InitRando()
 {
+    if (bShuffleWeaponsWithOthers){
+        ReplaceWeaponBases();
+    }
     ShuffleItems(self);
 }
 
@@ -18,6 +43,7 @@ function ShuffleItems(Actor a)
         if (xWeaponBase(item)!=None){
             if (!bShuffleWeapons){continue;}
             if (!bShuffleSupers && (xWeaponBase(item).WeaponType.Default.InventoryGroup==0)){continue;}
+            if (bShuffleWeaponsWithOthers){continue;}
             weapons[num_weapons++] = item;
         } else if (WildcardBase(item)!=None){
             log("Ignoring WildcardBase "$item);
@@ -31,6 +57,11 @@ function ShuffleItems(Actor a)
             }
             if (!bShuffleOther){
                 if (UDamageCharger(item)!=None){continue;}
+            }
+            if (RandoWeaponBase(item)!=None){
+                log("Looking at shuffling "$item.Name);
+                if (!bShuffleWeapons) {continue;}
+                if (!bShuffleSupers && RandoWeaponBase(item).isSuper){continue;}
             }
             bases[num_bases++] = item;
         }
@@ -170,6 +201,7 @@ static event string GetDescriptionText(string PropName) {
         case "bShuffleAmmo":  return "Should Ammo get randomized?";
         case "bShuffleAdrenaline":  return "Should Adrenaline get randomized?";
         case "bShuffleOther":  return "Should other items (eg. UDamage) get randomized?";
+        case "bShuffleWeaponsWithOthers":  return "Should weapons be randomized in the same pool as health, armour, and UDamage?";
     }
     return Super.GetDescriptionText(PropName);
 }
@@ -183,6 +215,7 @@ static function FillPlayInfo(PlayInfo PlayInfo) {
     PlayInfo.AddSetting("Randomizer", "bShuffleAmmo", "Shuffle Ammo", 0, 1, "Check");
     PlayInfo.AddSetting("Randomizer", "bShuffleAdrenaline", "Shuffle Adrenaline", 0, 1, "Check");
     PlayInfo.AddSetting("Randomizer", "bShuffleOther", "Shuffle Other Items", 0, 1, "Check");
+    PlayInfo.AddSetting("Randomizer", "bShuffleWeaponsWithOthers", "Shuffle Weapons With Other Items", 0, 1, "Check");
 }
 
 
@@ -196,4 +229,5 @@ defaultproperties
     bShuffleAmmo=True
     bShuffleAdrenaline=True
     bShuffleOther=True
+    bShuffleWeaponsWithOthers=False
 }

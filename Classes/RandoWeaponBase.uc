@@ -9,6 +9,20 @@ class RandoWeaponBase extends xPickUpBase
 
 #exec OBJ LOAD FILE=2k4ChargerMeshes.usx
 
+var bool isSuper;
+
+simulated function SetWeaponType(class<Weapon> WeaponType)
+{
+    if (WeaponType != None)
+    {
+        PowerUp = WeaponType.default.PickupClass;
+        if ( WeaponType.Default.InventoryGroup == 0 ){
+            bDelayedSpawn = true;
+            isSuper=true;
+        }
+    }
+}
+
 simulated function PostBeginPlay()
 {
     Super.PostBeginPlay();
@@ -17,6 +31,7 @@ simulated function PostBeginPlay()
 
 defaultproperties
 {
+     bStatic=False
      SpiralEmitter=Class'XEffects.Spiral'
      NewStaticMesh=StaticMesh'2k4ChargerMeshes.ChargerMeshes.WeaponChargerMesh-DS'
      NewPrePivot=(Z=3.700000)
