@@ -666,8 +666,6 @@ static function FillPlayInfo(PlayInfo PlayInfo) {
     
     PlayInfo.AddSetting("Simulated Crowd Control", "effectFrequency", "Effect Frequency", 0, 2, "Text","3;1:300");
     PlayInfo.AddSetting("Simulated Crowd Control", "effectChance", "Effect Chance", 0, 2, "Text","4;0.01:1.0");
-
-    PlayInfo.PopClass();
 }
 
 defaultproperties
