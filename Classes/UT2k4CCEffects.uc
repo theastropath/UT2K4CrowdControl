@@ -107,6 +107,7 @@ var bool bFat,bFast;
 var string targetPlayer;
 
 var bool isLocal;
+var bool effectSelectInit;
 
 replication
 {
@@ -129,6 +130,7 @@ function Init(Mutator baseMut)
     BouncyCastleVelocity=vect(0,0,600);  
 
     isLocal = Level.NetMode!=NM_DedicatedServer && Level.NetMode!=NM_ListenServer;
+    effectSelectInit = False;
 
     for (i=0;i<MaxAddedBots;i++){
         added_bots[i]=None;
@@ -2252,15 +2254,18 @@ simulated function int SetAllPlayerAnnouncerVoice(string viewer, string announce
 
 function HandleEffectSelectability(UT2k4CrowdControlLink ccLink)
 {
-    ccLink.sendEffectSelectability("full_fat",isLocal);
-    ccLink.sendEffectSelectability("skin_and_bones",isLocal);
-    ccLink.sendEffectSelectability("limbless",isLocal);
-    ccLink.sendEffectSelectability("silent_hill",isLocal);
-    ccLink.sendEffectSelectability("announcer",isLocal);
-
-    ccLink.sendEffectSelectability("reset_domination_control_points",xDoubleDom(Level.Game)!=None);
-    ccLink.sendEffectSelectability("return_ctf_flags",CTFGame(Level.Game)!=None);
-    ccLink.sendEffectSelectability("team_balance",TeamGame(Level.Game)!=None);
+    if (effectSelectInit==False){
+        ccLink.sendEffectSelectability("full_fat",isLocal);
+        ccLink.sendEffectSelectability("skin_and_bones",isLocal);
+        ccLink.sendEffectSelectability("limbless",isLocal);
+        ccLink.sendEffectSelectability("silent_hill",isLocal);
+        ccLink.sendEffectSelectability("announcer",isLocal);
+        ccLink.sendEffectSelectability("reset_domination_control_points",xDoubleDom(Level.Game)!=None);
+        ccLink.sendEffectSelectability("return_ctf_flags",CTFGame(Level.Game)!=None);
+        ccLink.sendEffectSelectability("team_balance",TeamGame(Level.Game)!=None);
+    
+        effectSelectInit=True;
+    }
 }
 
 function int BranchCrowdControlType(string code, string param[5], string viewer, int type, int duration) {

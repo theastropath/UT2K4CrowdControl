@@ -5,7 +5,6 @@ var config bool bShuffleSupers, bShuffleWeapons, bShuffleHealth, bShuffleAmmo, b
 
 function bool CheckReplacement( Actor Other, out byte bSuperRelevant )
 {
-    local RandoWeaponBase rwb;
     if (bShuffleWeaponsWithOthers && xWeaponBase(Other) != None ){
         return false; //Just despawn them, we've already replaced them
     }

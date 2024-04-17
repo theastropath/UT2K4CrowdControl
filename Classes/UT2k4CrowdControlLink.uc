@@ -275,3 +275,9 @@ function ResolveFailed()
     Level.Game.Broadcast(self,"Could not resolve Crowd Control address");
     reconnectTimer = ReconDefault;
 }
+
+defaultproperties
+{
+    LinkMode=MODE_Binary
+    ReceiveMode=RMODE_Manual
+}

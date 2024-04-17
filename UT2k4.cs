@@ -60,7 +60,7 @@ public class UnrealTournament2004 : SimpleTCPPack
         new Effect("Limbless Mode", "limbless"){Price = 4, Description = "All players lose their limbs!", Duration=60},
         new Effect("Gotta Go Fast", "gotta_go_fast"){Price = 10, Description = "It's extra fast mode!", Duration=60},
         new Effect("Gotta Go Slow", "gotta_go_slow"){Price = 10, Description = "It's extra slow mode!", Duration=15},
-        new Effect("Swap Two Players Positions", "swap_player_position"){Price = 10, Description = "2 players swap positions on the map!"},
+        new Effect("Swap All Players Positions", "swap_player_position"){Price = 10, Description = "All players swap positions on the map!"},
         new Effect("Nudge All Players", "nudge"){Price = 5, Description = "Push the players around!"},
         new Effect("Ice Physics", "ice_physics"){Price = 10, Description = "Summon frosty floors!", Duration=60},
         new Effect("Low Gravity", "low_grav"){Price = 5, Description = "Low gravity means players jump higher!", Duration=60},
