@@ -1349,7 +1349,7 @@ function int ThanosSnap(String viewer)
                 P,
                 P.Location,
                 Vect(0,0,0),
-                class'Gibbed'				
+                class'ThanosSnapped'				
             );
         }
     }
@@ -2325,6 +2325,13 @@ function HandleEffectSelectability(UT2k4CrowdControlLink ccLink)
         ccLink.sendEffectSelectability("heal_onslaught_cores",ONSOnslaughtGame(Level.Game)!=None);
         ccLink.sendEffectSelectability("reset_onslaught_links",ONSOnslaughtGame(Level.Game)!=None);
     
+        //Adrenaline is disabled in Onslaught
+        ccLink.sendEffectSelectability("full_adrenaline",ONSOnslaughtGame(Level.Game)==None);
+        ccLink.sendEffectSelectability("last_place_ultra_adrenaline",ONSOnslaughtGame(Level.Game)==None);
+        ccLink.sendEffectSelectability("all_berserk",ONSOnslaughtGame(Level.Game)==None);
+        ccLink.sendEffectSelectability("all_invisible",ONSOnslaughtGame(Level.Game)==None);
+        ccLink.sendEffectSelectability("all_regen",ONSOnslaughtGame(Level.Game)==None);
+    
         effectSelectInit=True;
     }
 }
@@ -2466,6 +2473,7 @@ function int StopCrowdControlEvent(string code, optional bool bKnownStop)
 //Ideas that could be added:
 //-Spawn a vehicle (all the ONSVehicle types, I guess) - would need various space checks and stuff
 //-Play a (random?) announcement
+//-Only headshots count (Use a new GameRules that discards any damage that isn't to the head region)
 
 simulated function int doCrowdControlEvent(string code, string param[5], string viewer, int type, int duration) {
     
