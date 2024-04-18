@@ -99,7 +99,7 @@ public class UnrealTournament2004 : SimpleTCPPack
             Description = "Give a little health!"
         },
         new Effect("Sudden Death", "sudden_death") { Category = "Health & Ammo", Price = 10, Description = "Activate sudden death mode!" },
-        new Effect("Thanos Snap", "thanos") { Category = "Health & Ammo", Price = 15, Description = "Each player has a 50% chance of instantly being killed!" },
+        new Effect("Thanos Snap", "thanos") { Category = "Health & Ammo", Price = 15, Description = "Half of the living players in the match get blown to bits!  Perfectly balanced, as all things should be." },
         new Effect("Vampiric Attacks", "vampire_mode") { Category = "Health & Ammo", Price = 10, Description = "All attacks by players sap some life, healing the player!", Duration=60 },
         new Effect("Give Shield Belt to Last Place", "last_place_shield") { Category = "Health & Ammo", Price = 5, Description = "Help out that last place player!" },
         new Effect("Blue (Redeemer) Shell", "blue_redeemer_shell") { Category = "Health & Ammo", Price = 15, Description = "Drops a redeemer explosion on the player in first place!" },

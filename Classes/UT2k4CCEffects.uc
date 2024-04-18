@@ -1333,25 +1333,38 @@ function int GottaGoSlow(String viewer, int duration)
 
 function int ThanosSnap(String viewer)
 {
-    local Pawn p;
+    local Pawn p, pawns[40];
+    local int i, num, num_pawns, num_to_kill;
     //local String origDamageString;
     
     //origDamageString = Level.Game.SpecialDamageString;
     //Level.Game.SpecialDamageString = "%o got snapped by "$viewer;
     
+    num_pawns=0;
     foreach AllActors(class'Pawn',p) {
         if (Vehicle(p)!=None){continue;}
+        if (p.Health<=0){ continue; }
+        pawns[num_pawns++]=p;
+    }
 
-        if (Rand(2)==0){ //50% chance of death
-            P.TakeDamage
-            (
-                10000,
-                P,
-                P.Location,
-                Vect(0,0,0),
-                class'ThanosSnapped'				
-            );
-        }
+    if (num_pawns<2){
+        return TempFail;
+    }
+
+    num_to_kill = num_pawns/2;
+    
+    for (i=0;i<num_to_kill;i++){
+        num=Rand(num_pawns);
+        pawns[num].TakeDamage
+        (
+            10000,
+            pawns[num],
+            pawns[num].Location,
+            Vect(0,0,0),
+            class'ThanosSnapped'				
+        );
+        pawns[num] = pawns[num_pawns-1];
+        num_pawns--;
     }
     
     //Level.Game.SpecialDamageString = origDamageString;
