@@ -118,6 +118,8 @@ def pickEffect():
     effects.append(("bouncy_castle",None))
     effects.append(("silent_hill",None))
     effects.append(("announcer",[randomAnnouncer()]))
+    effects.append(("heal_onslaught_cores",None))
+    effects.append(("reset_onslaught_links",None))
 
     return random.choice(effects)
 

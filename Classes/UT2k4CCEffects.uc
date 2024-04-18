@@ -597,7 +597,7 @@ function Pawn findRandomPawn()
     num = 0;
     
     foreach AllActors(class'Pawn',p) {
-        if (!p.IsA('StationaryPawn') && p.Health>0){
+        if (Vehicle(p)==None && p.DrivenVehicle==None && p.Health>0){
             pawns[num++] = p;
         }
     }
@@ -777,7 +777,7 @@ function ForceAllPawnsToMelee()
     local Pawn p;
     
     foreach AllActors(class'Pawn',p) {
-        if (!p.IsA('StationaryPawn')){
+        if (Vehicle(p)==None){
             ForcePawnToMeleeWeapon(p);
         }
     }
@@ -795,7 +795,7 @@ function Pawn findPawnByScore(bool highest, int avoidTeam)
     
     cur = None;
     foreach AllActors(class'Pawn',p) {
-        if (p.IsA('StationaryPawn')){
+        if (Vehicle(p)!=None){
             continue; //Skip turrets and things like that
         }
         if (p.Health<=0){
@@ -873,7 +873,7 @@ function int FindTeamWithLeastPlayers()
     }
     
     foreach AllActors(class'Pawn',p) {
-        if (!p.IsA('StationaryPawn')){
+        if (Vehicle(p)==None){
             pCount[p.PlayerReplicationInfo.TeamID]++;
         }
     }
@@ -919,7 +919,7 @@ function TopUpWeaponAmmoAllPawns(class<Weapon> weaponClass)
     local Weapon w;
     
     foreach AllActors(class'Pawn',p) {
-        if (p.IsA('StationaryPawn') || p.IsA('Spectator') || p.Health<=0){
+        if (p.IsA('Spectator') || p.Health<=0){
             continue;
         }
         w=None;
@@ -1006,7 +1006,7 @@ simulated function ForceAllPawnsToSpecificWeapon(class<Weapon> weaponClass)
     local Pawn p;
     
     foreach AllActors(class'Pawn',p) {
-        if (!p.IsA('StationaryPawn') && p.Health>0){
+        if (Vehicle(p)==None && p.Health>0){
             ForcePawnToSpecificWeapon(p, weaponClass);
         }
     }
@@ -1119,6 +1119,8 @@ function UpdateAllPawnsSwimState()
     
     foreach AllActors(class'Pawn',p) {
         //Broadcast("State before update was "$p.GetStateName());
+        if (Vehicle(p)!=None){continue;} //Skip vehicles
+
         if (p.Health>0){
             if (p.HeadVolume.bWaterVolume) {
                 p.setPhysics(PHYS_Swimming);
@@ -1202,6 +1204,7 @@ function int FullArmour(string viewer)
     local Pawn p;
     
     foreach AllActors(class'Pawn',p) {
+        if (Vehicle(p)!=None){continue;}
         p.AddShieldStrength(150);
     }
    
@@ -1275,6 +1278,7 @@ function int GiveDamageItem(String viewer)
     local Pawn p;
     
     foreach AllActors(class'Pawn',p) {
+        if (Vehicle(p)!=None){continue;}
         p.EnableUDamage(30);
     }
     
@@ -1330,9 +1334,8 @@ function int ThanosSnap(String viewer)
     //Level.Game.SpecialDamageString = "%o got snapped by "$viewer;
     
     foreach AllActors(class'Pawn',p) {
-        if (p.IsA('StationaryPawn')){
-            continue;
-        }
+        if (Vehicle(p)!=None){continue;}
+
         if (Rand(2)==0){ //50% chance of death
             P.TakeDamage
             (
@@ -1402,7 +1405,7 @@ function int SwapAllPlayers(string viewer){
     //Collect all the information about where pawns are currently
     //and remove their collision
     foreach AllActors(class'Pawn',p) {
-        if (!p.IsA('StationaryPawn') && p.Health>0){
+        if (Vehicle(p)==None && p.DrivenVehicle==None && p.Health>0){
             pawns[numPlayers] = p;
             locs[numPlayers]=p.Location;
             rots[numPlayers]=p.Rotation;
@@ -1457,7 +1460,7 @@ function int NoAmmo(String viewer)
     local Pawn p;
     
     foreach AllActors(class'Pawn',p) {
-        if (!p.IsA('StationaryPawn')){
+        if (Vehicle(p)==None){
             RemoveAllAmmoFromPawn(p);
         }
     }
@@ -1528,7 +1531,7 @@ function int DropSelectedWeapon(string viewer) {
     }        
 
     foreach AllActors(class'Pawn',p) {
-        if (p.IsA('StationaryPawn')){
+        if (Vehicle(p)!=None){
             continue;
         }
         if (IsWeaponRemovable(p.Weapon)){
@@ -1556,7 +1559,7 @@ function int GiveWeapon(String viewer, String weaponName)
     weaponClass = GetWeaponClassByName(weaponName);
     
     foreach AllActors(class'Pawn',p) {  //Probably could just iterate over PlayerControllers, but...
-        if (p.IsA('StationaryPawn') || p.IsA('Spectator') || p.Health<=0){
+        if (Vehicle(p)!=None || p.IsA('Spectator') || p.Health<=0){
             continue;
         }
         GiveWeaponToPawn(p,weaponClass);
@@ -1784,6 +1787,7 @@ simulated function int StartBigHeadMode(string viewer, int duration)
     }
 
     foreach AllActors(class'Pawn',p){
+        if (Vehicle(p)!=None){continue;}
         changed=True;
         p.SetHeadScale(BigHeadScale);
     }
@@ -1818,6 +1822,7 @@ simulated function int StartHeadlessMode(string viewer, int duration)
     }
 
     foreach AllActors(class'Pawn',p){
+        if (Vehicle(p)!=None){continue;}
         changed=True;
         p.SetHeadScale(HiddenScale);
     }
@@ -1850,6 +1855,7 @@ simulated function int StartLimblessMode(string viewer, int duration)
     }
 
     foreach AllActors(class'Pawn',p){
+        if (Vehicle(p)!=None){continue;}
         changed=True;
         SetLimblessScale(p);
     }
@@ -1882,6 +1888,7 @@ simulated function int StartFullFatMode(string viewer, int duration)
     }
 
     foreach AllActors(class'Pawn',p){
+        if (Vehicle(p)!=None){continue;}
         changed=True;
         SetAllBoneScale(p,FatScale);
     }
@@ -1914,6 +1921,7 @@ simulated function int StartSkinAndBonesMode(string viewer, int duration)
     }
 
     foreach AllActors(class'Pawn',p){
+        if (Vehicle(p)!=None){continue;}
         changed=True;
         SetAllBoneScale(p,SkinnyScale);
     }
@@ -1971,7 +1979,7 @@ function int ForceWeaponUse(String viewer, String weaponName, int duration)
     weaponClass = GetWeaponClassByName(weaponName);
     
     foreach AllActors(class'Pawn',p) {  //Probably could just iterate over PlayerControllers, but...
-        if (p.IsA('StationaryPawn') || p.IsA('Spectator') || p.Health<=0){
+        if ((Vehicle(p)!=None) || p.IsA('Spectator') || p.Health<=0){
             continue;
         }
         GiveWeaponToPawn(p,weaponClass);
@@ -2248,6 +2256,51 @@ simulated function int SetAllPlayerAnnouncerVoice(string viewer, string announce
 
 }
 
+function int HealOnslaughtCores(string viewer)
+{
+    local ONSPowerCore core;
+    local bool found;
+
+    found=false;
+    foreach AllActors(class'ONSPowerCore',core){
+        if (core.bFinalCore){
+            if (core.Health>=core.DamageCapacity){continue;}
+            core.Health = core.DamageCapacity;
+            found=true;
+        }
+    }
+
+    if (!found){
+        return TempFail;
+    }
+
+    Broadcast(viewer@"fully healed the power cores!");
+
+    return Success;
+}
+
+function int ResetOnslaughtPowerNodes(string viewer)
+{
+    local ONSPowerCore core;
+    local bool found;
+
+    found=false;
+    foreach AllActors(class'ONSPowerCore',core){
+        if (!core.bFinalCore && core.DefenderTeamIndex<2){
+            core.PowerCoreReset();
+            found=true;
+        }
+    }
+
+    if (!found){
+        return TempFail;
+    }
+
+    Broadcast(viewer@"reset all the power nodes!");
+
+    return Success;
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////                                  CROWD CONTROL EFFECT MAPPING                                       ////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2263,6 +2316,8 @@ function HandleEffectSelectability(UT2k4CrowdControlLink ccLink)
         ccLink.sendEffectSelectability("reset_domination_control_points",xDoubleDom(Level.Game)!=None);
         ccLink.sendEffectSelectability("return_ctf_flags",CTFGame(Level.Game)!=None);
         ccLink.sendEffectSelectability("team_balance",TeamGame(Level.Game)!=None);
+        ccLink.sendEffectSelectability("heal_onslaught_cores",ONSOnslaughtGame(Level.Game)!=None);
+        ccLink.sendEffectSelectability("reset_onslaught_links",ONSOnslaughtGame(Level.Game)!=None);
     
         effectSelectInit=True;
     }
@@ -2506,6 +2561,10 @@ simulated function int doCrowdControlEvent(string code, string param[5], string 
             return StartFog(viewer, duration);//TODO: Make this work in multiplayer somehow
         case "bouncy_castle":
             return StartBounce(viewer, duration); 
+        case "heal_onslaught_cores":
+            return HealOnslaughtCores(viewer);
+        case "reset_onslaught_links":
+            return ResetOnslaughtPowerNodes(viewer);
         default:
             Broadcast("Got Crowd Control Effect -   code: "$code$"   viewer: "$viewer );
             break;
