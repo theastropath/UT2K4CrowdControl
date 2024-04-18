@@ -39,6 +39,7 @@ def randomAmmo():
     ammo.append('rocketammo') 
     ammo.append('shockammo')
     ammo.append('sniperammo') 
+    ammo.append('mineammo') 
 
     return random.choice(ammo).lower()
 
@@ -55,6 +56,7 @@ def randomWeapon():
     weapon.append('lightninggun')
     weapon.append('translocator')
     weapon.append('supershockrifle')
+    weapon.append('minelayer')
 
     return random.choice(weapon).lower()
 

@@ -28,6 +28,7 @@ public class UnrealTournament2004 : SimpleTCPPack
         new Parameter("Link Gun", "linkgun"),
         new Parameter("Minigun", "minigun"),
         new Parameter("Rocket Launcher", "rocketlauncher")
+        new Parameter("Spider Mine Layer", "minelayer")
     );
 
     //Ammo List
@@ -40,6 +41,7 @@ public class UnrealTournament2004 : SimpleTCPPack
         new Parameter("Rockets", "rocketammo"),
         new Parameter("Shock Core", "shockammo"),
         new Parameter("Lightning Charges", "sniperammo")
+        new Parameter("Parasite Mines", "mineammo")
     );
 
     //Announcer List
@@ -72,8 +74,8 @@ public class UnrealTournament2004 : SimpleTCPPack
         //new Effect("Spawn a Defending Bot (One Death)", "spawn_a_bot_defend"){Price = 10, Description = "This will spawn a bot on whatever team is has the least amount of players with orders to defend their base"},
         new Effect("Reset Domination Control Points", "reset_domination_control_points"){Category = "Game Mode Specific Effects", Price = 5, Description = "This will reset all control points in Domination Mode to neutral"},
         new Effect("Return Flags", "return_ctf_flags"){Category = "Game Mode Specific Effects", Price = 5, Description = "In Capture the Flag Mode, this will return all flags to their base"},
-        new Effect("Heal Onslaught Power Cores", "heal_onslaught_cores"){Category = "Game Mode Specific Effects", Price = 5, Description = "In Onslaught Mode, this will fully heal both power cores."},
-        new Effect("Reset Onslaught Power Nodes", "reset_onslaught_links"){Category = "Game Mode Specific Effects", Price = 5, Description = "In Onslaught Mode, this will reset all the intermediate power nodes to neutral."},
+        new Effect("Heal Onslaught Power Cores", "heal_onslaught_cores"){Category = "Game Mode Specific Effects", Price = 10, Description = "In Onslaught Mode, this will fully heal both power cores."},
+        new Effect("Reset Onslaught Power Nodes", "reset_onslaught_links"){Category = "Game Mode Specific Effects", Price = 15, Description = "In Onslaught Mode, this will reset all the intermediate power nodes to neutral."},
         new Effect("Wiggle Time", "thrust"){Price = 1, Description = "Everyone gets wiggly!"},
         new Effect("Switch First Place Player Team", "team_balance"){Category = "Game Mode Specific Effects", Price = 5, Description = "The player in first place switches to the other team!"},
         new Effect("Bouncy Castle", "bouncy_castle"){Price = 5, Description = "Everyone gets periodically bounced up into the air!"},

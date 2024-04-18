@@ -646,6 +646,9 @@ function class<Ammunition> GetAmmoClassByName(String ammoName)
         case "sniperammo":
             ammoClass = class'SniperAmmo';
             break;
+        case "mineammo":
+            ammoClass = class'Onslaught.ONSMineAmmo';
+            break;
         default:
             break;
     }
@@ -702,6 +705,9 @@ function class<Weapon> GetWeaponClassByName(String weaponName)
             break;
         case "translocator":
             weaponClass = class'Translauncher';
+            break;
+        case "minelayer":
+            weaponClass = class'Onslaught.ONSMineLayer';
             break;
         default:
             break;
