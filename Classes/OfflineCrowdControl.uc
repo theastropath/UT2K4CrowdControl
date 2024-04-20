@@ -731,6 +731,9 @@ defaultproperties
     effects(40)=(EffectName="announcer",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
     effects(41)=(EffectName="fumble_bombing_run_ball",quantityMin=0,quantityMax=0,durationMin=0,durationMax=0,enabled=true)
     effects(42)=(EffectName="bombing_run_hot_potato",quantityMin=0,quantityMax=0,durationMin=10,durationMax=60,enabled=true)
+    effects(43)=(EffectName="attack_team_double_dmg",quantityMin=0,quantityMax=0,durationMin=10,durationMax=60,enabled=true)
+    effects(44)=(EffectName="defend_team_double_dmg",quantityMin=0,quantityMax=0,durationMin=10,durationMax=60,enabled=true)
+    effects(45)=(EffectName="head_shots_only",quantityMin=0,quantityMax=0,durationMin=10,durationMax=60,enabled=true)
     botNames(0)="Jim"
     botNames(1)="James"
     botNames(2)="Jeremy"

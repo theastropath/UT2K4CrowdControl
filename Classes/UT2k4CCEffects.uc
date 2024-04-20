@@ -32,6 +32,9 @@ var int teamDamageTimer;
 const TeamDamageTimerDefault = 60;
 var bool teamDamageHoldingTeam;
 
+var int headShotTimer;
+const HeadShotTimerDefault = 60;
+
 const MaxAddedBots = 10;
 var Bot added_bots[10];
 var int numAddedBots;
@@ -120,7 +123,7 @@ var bool effectSelectInit;
 replication
 {
     reliable if ( Role == ROLE_Authority )
-        behindTimer,speedTimer,meleeTimer,iceTimer,vampireTimer,floodTimer,forceWeaponTimer,bFat,bFast,forcedWeapon,numAddedBots,targetPlayer,GetEffectList,bodyEffectTimer,bodyEffect,gravityTimer,setLimblessScale,SetAllBoneScale,ModifyPlayer,SetPawnBoneScale,SetAllPlayerAnnouncerVoice,fogTimer,bounceTimer,hotPotatoTimer,teamDamageTimer,teamDamageHoldingTeam;
+        behindTimer,speedTimer,meleeTimer,iceTimer,vampireTimer,floodTimer,forceWeaponTimer,bFat,bFast,forcedWeapon,numAddedBots,targetPlayer,GetEffectList,bodyEffectTimer,bodyEffect,gravityTimer,setLimblessScale,SetAllBoneScale,ModifyPlayer,SetPawnBoneScale,SetAllPlayerAnnouncerVoice,fogTimer,bounceTimer,hotPotatoTimer,teamDamageTimer,teamDamageHoldingTeam,headShotTimer;
 }
 
 function Init(Mutator baseMut)
@@ -250,6 +253,10 @@ simulated function GetEffectList(out string effects[15], out int numEffects)
         effects[i]$=" Team Double Damage: "$teamDamageTimer;
         i++;
     }
+    if (headShotTimer > 0) {
+        effects[i]="Head Shots Only: "$headShotTimer;
+        i++;
+    }
     if (forceWeaponTimer > 0) {
         effects[i]="Forced "$forcedWeapon.default.ItemName$": "$forceWeaponTimer;
         i++;
@@ -348,7 +355,12 @@ function PeriodicUpdates()
             StopCrowdControlEvent("attack_team_double_dmg",true);
         }
     }  
-    
+    if (headShotTimer > 0) {
+        headShotTimer--;
+        if (headShotTimer <= 0) {
+            StopCrowdControlEvent("head_shots_only",true);
+        }
+    }  
     if (forceWeaponTimer > 0) {
         forceWeaponTimer--;
         if (forceWeaponTimer <= 0) {
@@ -2105,6 +2117,30 @@ function int StartTeamDamageMode(string viewer, int duration, bool holdingTeam)
     return Success;
 }
 
+function int StartHeadShotsOnly(string viewer, int duration)
+{
+    if (headShotTimer>0) {
+        return TempFail;
+    }
+
+    //Check if game rule is already in place, fail if it is
+    if (IsGameRuleActive(class'HeadShotsOnlyRules')){
+        return TempFail;
+    }
+
+    //Attempt to add the game rules, fail if it doesn't for some reason
+    if (!AddNewGameRule(class'HeadShotsOnlyRules')){
+        return TempFail;
+    }
+
+    Broadcast(viewer@"made only head shots count!");
+    if (duration==0){
+        duration = HeadShotTimerDefault;
+    }
+    headShotTimer = duration;
+    return Success;
+}
+
 function int ForceWeaponUse(String viewer, String weaponName, int duration)
 {
     local class<Weapon> weaponClass;
@@ -2677,6 +2713,13 @@ function int StopCrowdControlEvent(string code, optional bool bKnownStop)
                 teamDamageTimer=0;
             }
             break;
+        case "head_shots_only":
+            if (bKnownStop || headShotTimer > 0){
+                RemoveGameRule(class'HeadShotsOnlyRules');
+                Broadcast("Damage other than head shots count again...");
+                headShotTimer=0;
+            }
+            break;
         
     }
     return Success;
@@ -2689,6 +2732,11 @@ function int StopCrowdControlEvent(string code, optional bool bKnownStop)
 //-Spawn a vehicle (all the ONSVehicle types, I guess) - would need various space checks and stuff
 //-Play a (random?) announcement
 //-Only headshots count (Use a new GameRules that discards any damage that isn't to the head region)
+//-Objective holder (Flag or ball) goes slow
+//-Can throw ball harder (or softer?)
+//-Multiple Bombing Run Balls (Multiball)
+//-Swap goal locations (Ball goal or flags)
+//-Reset Bombing Run Ball
 
 simulated function int doCrowdControlEvent(string code, string param[5], string viewer, int type, int duration) {
     
@@ -2802,6 +2850,8 @@ simulated function int doCrowdControlEvent(string code, string param[5], string 
             return StartTeamDamageMode(viewer, duration, true);
         case "defend_team_double_dmg":
             return StartTeamDamageMode(viewer, duration, false);
+        case "head_shots_only":
+            return StartHeadShotsOnly(viewer,duration);
         default:
             Broadcast("Got Crowd Control Effect -   code: "$code$"   viewer: "$viewer );
             break;
