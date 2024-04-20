@@ -2731,7 +2731,6 @@ function int StopCrowdControlEvent(string code, optional bool bKnownStop)
 //Ideas that could be added:
 //-Spawn a vehicle (all the ONSVehicle types, I guess) - would need various space checks and stuff
 //-Play a (random?) announcement
-//-Only headshots count (Use a new GameRules that discards any damage that isn't to the head region)
 //-Objective holder (Flag or ball) goes slow
 //-Can throw ball harder (or softer?)
 //-Multiple Bombing Run Balls (Multiball)

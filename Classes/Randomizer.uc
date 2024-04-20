@@ -1,6 +1,6 @@
 class Randomizer extends Mutator;
 
-var config bool bShuffleSupers, bShuffleWeapons, bShuffleHealth, bShuffleAmmo, bShuffleAdrenaline, bShuffleOther,bShuffleWeaponsWithOthers, bRandomWeaponLockers, bRedeemerInLockers;
+var config bool bShuffleSupers, bShuffleWeapons, bShuffleHealth, bShuffleAmmo, bShuffleAdrenaline, bShuffleOther,bShuffleWeaponsWithOthers, bRandomWeaponLockers, bSuperWeaponsInLockers;
 
 
 function bool CheckReplacement( Actor Other, out byte bSuperRelevant )
@@ -114,8 +114,8 @@ function class<Weapon> PickRandomWeaponClass()
 
     numWeaponTypes=10;
 
-    if (bRedeemerInLockers){
-        numWeaponTypes+=1; //Redeemer
+    if (bSuperWeaponsInLockers){
+        numWeaponTypes+=2; //Redeemer and instagib rifle
     }
 
     switch(Rand(numWeaponTypes)){
@@ -143,6 +143,8 @@ function class<Weapon> PickRandomWeaponClass()
         //Make sure super weapons are all at the end
         case 10:
             return class'Redeemer';
+        case 11:
+            return class'SuperShockRifle';
     }
 
     return None;
@@ -256,7 +258,7 @@ static event string GetDescriptionText(string PropName) {
         case "bShuffleOther":  return "Should other items (eg. UDamage) get randomized?";
         case "bShuffleWeaponsWithOthers":  return "Should weapons be randomized in the same pool as health, armour, and UDamage?";
         case "bRandomWeaponLockers":  return "Should the weapons available in weapon lockers be randomized?";
-        case "bRedeemerInLockers":  return "Should Redeemers be allowed in randomized weapon lockers?";
+        case "bSuperWeaponsInLockers":  return "Should super weapons (Redeemer and Instagib Rifle) be allowed in randomized weapon lockers?";
     }
     return Super.GetDescriptionText(PropName);
 }
@@ -272,7 +274,7 @@ static function FillPlayInfo(PlayInfo PlayInfo) {
     PlayInfo.AddSetting("Randomizer", "bShuffleOther", "Shuffle Other Items", 0, 1, "Check");
     PlayInfo.AddSetting("Randomizer", "bShuffleWeaponsWithOthers", "Shuffle Weapons With Other Items", 0, 1, "Check");
     PlayInfo.AddSetting("Randomizer", "bRandomWeaponLockers", "Randomize Weapon Lockers", 0, 1, "Check");
-    PlayInfo.AddSetting("Randomizer", "bRedeemerInLockers", "Redeemers in Random Weapon Lockers", 0, 1, "Check");
+    PlayInfo.AddSetting("Randomizer", "bSuperWeaponsInLockers", "Super Weapons in Random Weapon Lockers", 0, 1, "Check");
 }
 
 
@@ -288,5 +290,5 @@ defaultproperties
     bShuffleOther=True
     bShuffleWeaponsWithOthers=False
     bRandomWeaponLockers=True
-    bRedeemerInLockers=False
+    bSuperWeaponsInLockers=False
 }
