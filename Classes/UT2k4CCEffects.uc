@@ -2067,6 +2067,10 @@ function int StartTeamDamageMode(string viewer, int duration, bool holdingTeam)
         return TempFail;
     }
 
+    if (xBombingRun(Level.Game)==None && ASGameInfo(Level.Game)==None){
+        return TempFail;
+    }
+
     if (holdingTeam){
         newRuleClass=class'OffenseDoubleDamageRules';
     } else {
