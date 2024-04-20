@@ -156,6 +156,7 @@ public class UnrealTournament2004 : SimpleTCPPack
         //},
 
         new Effect("Full Adrenaline", "full_adrenaline") { Category = "Adrenaline & Combos", Price = 2, Description = "Max out all players adrenaline!" },
+        new Effect("Infinite Adrenaline", "infinite_adrenaline") { Category = "Adrenaline & Combos", Price = 10, Description = "All players have infinite adrenaline for a period of time!" },
         new Effect("Ultra Adrenaline Powers for Last Place", "last_place_ultra_adrenaline") { Category = "Adrenaline & Combos", Price = 10, Description = "The player in last place gains all of the adrenaline powers at once!" },
         new Effect("Invisible Players", "all_invisible") { Category = "Adrenaline & Combos", Price = 5, Description = "All players become temporarily invisible!" },
         new Effect("Berserker!", "all_berserk") { Category = "Adrenaline & Combos", Price = 5, Description = "All players become berserk temporarily!" },

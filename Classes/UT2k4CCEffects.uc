@@ -35,6 +35,9 @@ var bool teamDamageHoldingTeam;
 var int headShotTimer;
 const HeadShotTimerDefault = 60;
 
+var int infAdrenalineTimer;
+const InfAdrenalineTimerDefault = 60;
+
 const MaxAddedBots = 10;
 var Bot added_bots[10];
 var int numAddedBots;
@@ -179,7 +182,7 @@ function Broadcast(string msg)
 }
 
 
-simulated function GetEffectList(out string effects[15], out int numEffects)
+simulated function GetEffectList(out string effects[20], out int numEffects)
 {
     local int i;
     local int hotPotatoRemaining;
@@ -276,6 +279,11 @@ simulated function GetEffectList(out string effects[15], out int numEffects)
         effects[i]=effects[i]$bodyEffectTimer;
         i++;
     }
+    if (infAdrenalineTimer > 0) {
+        effects[i]="Infinite Adrenaline: "$infAdrenalineTimer;
+        i++;
+    }
+
 
     if (numAddedBots > 0) {
         effects[i]="Added Bots: "$numAddedBots;
@@ -378,7 +386,17 @@ function PeriodicUpdates()
         if (gravityTimer <= 0) {
             StopCrowdControlEvent("low_grav",true);
         }
-    }  
+    }
+    if (infAdrenalineTimer > 0) {
+        infAdrenalineTimer--;
+        if (infAdrenalineTimer <= 0) {
+            StopCrowdControlEvent("infinite_adrenaline",true);
+        } else {
+            InfiniteAdrenalineRefill();
+        }
+    } 
+
+    
     
 
 }
@@ -1243,6 +1261,17 @@ function BRHotPotatoCheck()
             Vect(0,0,0),
             class'HotPotato'
         );
+    }
+}
+
+function InfiniteAdrenalineRefill()
+{
+    local Controller c;
+    
+    foreach AllActors(class'Controller',c) {
+        if (c.bAdrenalineEnabled==True){
+            c.Adrenaline=c.AdrenalineMax;
+        }
     }
 }
 
@@ -2538,6 +2567,30 @@ function int BombingRunHotPotato(string viewer, int duration)
     return Success;
 }
 
+function int StartInfiniteAdrenaline(string viewer, int duration)
+{
+    local Controller c;
+    
+    if (infAdrenalineTimer>0){
+        return TempFail;
+    }
+
+    foreach AllActors(class'Controller',c) {
+        if (c.bAdrenalineEnabled==False){
+            return TempFail;
+        }
+        c.Adrenaline=c.AdrenalineMax;
+    }
+   
+    Broadcast(viewer$" has given everyone infinite adrenaline!");
+
+    if (duration==0){
+        duration = InfAdrenalineTimerDefault;
+    }
+    infAdrenalineTimer = duration;
+    return Success;
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////                                  CROWD CONTROL EFFECT MAPPING                                       ////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2723,6 +2776,12 @@ function int StopCrowdControlEvent(string code, optional bool bKnownStop)
                 headShotTimer=0;
             }
             break;
+        case "infinite_adrenaline":
+            if (bKnownStop || infAdrenalineTimer > 0){
+                Broadcast("Your adrenaline has limits again...");
+                infAdrenalineTimer=0;
+            }
+            break;
         
     }
     return Success;
@@ -2857,6 +2916,8 @@ simulated function int doCrowdControlEvent(string code, string param[5], string 
             return StartTeamDamageMode(viewer, duration, false);
         case "head_shots_only":
             return StartHeadShotsOnly(viewer,duration);
+        case "infinite_adrenaline":
+            return StartInfiniteAdrenaline(viewer,duration);
         default:
             Broadcast("Got Crowd Control Effect -   code: "$code$"   viewer: "$viewer );
             break;

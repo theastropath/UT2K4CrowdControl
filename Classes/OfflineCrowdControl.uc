@@ -666,6 +666,7 @@ static event string GetDescriptionText(string PropName) {
     switch (PropName) {
         case "effectFrequency":  return "How frequently the mutator will try to send effects";
         case "effectChance":  return "The chance for an effect to go off each time the mutator tries to send an effect";
+        case "defaultMutatorName":  return "The name that Simulated Crowd Control will say sent the effect";
     }
     return Super.GetDescriptionText(PropName);
 }
@@ -675,6 +676,7 @@ static function FillPlayInfo(PlayInfo PlayInfo) {
     
     PlayInfo.AddSetting("Simulated Crowd Control", "effectFrequency", "Effect Frequency", 0, 2, "Text","3;1:300");
     PlayInfo.AddSetting("Simulated Crowd Control", "effectChance", "Effect Chance", 0, 2, "Text","4;0.01:1.0");
+    PlayInfo.AddSetting("Simulated Crowd Control", "defaultMutatorName", "'Viewer' Name", 0, 2, "Text","30");
 }
 
 defaultproperties
@@ -734,6 +736,7 @@ defaultproperties
     effects(43)=(EffectName="attack_team_double_dmg",quantityMin=0,quantityMax=0,durationMin=10,durationMax=60,enabled=true)
     effects(44)=(EffectName="defend_team_double_dmg",quantityMin=0,quantityMax=0,durationMin=10,durationMax=60,enabled=true)
     effects(45)=(EffectName="head_shots_only",quantityMin=0,quantityMax=0,durationMin=10,durationMax=60,enabled=true)
+    effects(46)=(EffectName="infinite_adrenaline",quantityMin=0,quantityMax=0,durationMin=10,durationMax=60,enabled=true)
     botNames(0)="Jim"
     botNames(1)="James"
     botNames(2)="Jeremy"

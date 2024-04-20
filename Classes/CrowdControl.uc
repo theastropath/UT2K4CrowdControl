@@ -282,7 +282,7 @@ static event string GetDescriptionText(string PropName) {
 static function FillPlayInfo(PlayInfo PlayInfo) {
     Super.FillPlayInfo(PlayInfo);  // Always begin with calling parent
     
-    PlayInfo.AddSetting("Crowd Control", "crowd_control_addr", "Crowd Control Address", 0, 2, "Text","15");
+    PlayInfo.AddSetting("Crowd Control", "crowd_control_addr", "Crowd Control Address", 0, 2, "Text","50");
 }
 
 defaultproperties
