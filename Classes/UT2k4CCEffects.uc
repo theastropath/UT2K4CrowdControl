@@ -28,6 +28,10 @@ const MeleeTimerDefault = 60;
 var int vampireTimer;
 const VampireTimerDefault = 60;
 
+var int teamDamageTimer;
+const TeamDamageTimerDefault = 60;
+var bool teamDamageHoldingTeam;
+
 const MaxAddedBots = 10;
 var Bot added_bots[10];
 var int numAddedBots;
@@ -116,7 +120,7 @@ var bool effectSelectInit;
 replication
 {
     reliable if ( Role == ROLE_Authority )
-        behindTimer,speedTimer,meleeTimer,iceTimer,vampireTimer,floodTimer,forceWeaponTimer,bFat,bFast,forcedWeapon,numAddedBots,targetPlayer,GetEffectList,bodyEffectTimer,bodyEffect,gravityTimer,setLimblessScale,SetAllBoneScale,ModifyPlayer,SetPawnBoneScale,SetAllPlayerAnnouncerVoice,fogTimer,bounceTimer,hotPotatoTimer;
+        behindTimer,speedTimer,meleeTimer,iceTimer,vampireTimer,floodTimer,forceWeaponTimer,bFat,bFast,forcedWeapon,numAddedBots,targetPlayer,GetEffectList,bodyEffectTimer,bodyEffect,gravityTimer,setLimblessScale,SetAllBoneScale,ModifyPlayer,SetPawnBoneScale,SetAllPlayerAnnouncerVoice,fogTimer,bounceTimer,hotPotatoTimer,teamDamageTimer,teamDamageHoldingTeam;
 }
 
 function Init(Mutator baseMut)
@@ -237,6 +241,15 @@ simulated function GetEffectList(out string effects[15], out int numEffects)
         effects[i]="Vampire: "$vampireTimer;
         i++;
     }
+    if (teamDamageTimer > 0) {
+        if (teamDamageHoldingTeam){
+            effects[i]="Attacking";
+        } else {
+            effects[i]="Defending";
+        }
+        effects[i]$=" Team Double Damage: "$teamDamageTimer;
+        i++;
+    }
     if (forceWeaponTimer > 0) {
         effects[i]="Forced "$forcedWeapon.default.ItemName$": "$forceWeaponTimer;
         i++;
@@ -327,6 +340,12 @@ function PeriodicUpdates()
         vampireTimer--;
         if (vampireTimer <= 0) {
             StopCrowdControlEvent("vampire_mode",true);
+        }
+    }  
+    if (teamDamageTimer > 0) {
+        teamDamageTimer--;
+        if (teamDamageTimer <= 0) {
+            StopCrowdControlEvent("attack_team_double_dmg",true);
         }
     }  
     
@@ -2039,6 +2058,49 @@ function int StartVampireMode(string viewer, int duration)
     return Success;
 }
 
+function int StartTeamDamageMode(string viewer, int duration, bool holdingTeam)
+{
+    local class<GameRules> newRuleClass;
+    local string msg;
+
+    if (teamDamageTimer>0) {
+        return TempFail;
+    }
+
+    if (holdingTeam){
+        newRuleClass=class'OffenseDoubleDamageRules';
+    } else {
+        newRuleClass=class'DefenseDoubleDamageRules';
+    }
+
+    //Check if game rule is already in place, fail if it is
+    if (IsGameRuleActive(newRuleClass)){
+        return TempFail;
+    }
+
+    //Attempt to add the game rules, fail if it doesn't for some reason
+    if (!AddNewGameRule(newRuleClass)){
+        return TempFail;
+    }
+
+    teamDamageHoldingTeam = holdingTeam;
+
+    msg=viewer$" made the ";
+    if (holdingTeam){
+        msg$="attacking";
+    } else {
+        msg$="defending";
+    }
+    msg$=" team do double damage!";
+
+    Broadcast(msg);
+    if (duration==0){
+        duration = TeamDamageTimerDefault;
+    }
+    teamDamageTimer = duration;
+    return Success;
+}
+
 function int ForceWeaponUse(String viewer, String weaponName, int duration)
 {
     local class<Weapon> weaponClass;
@@ -2455,6 +2517,8 @@ function HandleEffectSelectability(UT2k4CrowdControlLink ccLink)
         ccLink.sendEffectSelectability("reset_onslaught_links",ONSOnslaughtGame(Level.Game)!=None);
         ccLink.sendEffectSelectability("fumble_bombing_run_ball",xBombingRun(Level.Game)!=None);
         ccLink.sendEffectSelectability("bombing_run_hot_potato",xBombingRun(Level.Game)!=None);
+        ccLink.sendEffectSelectability("attack_team_double_dmg",xBombingRun(Level.Game)!=None || ASGameInfo(Level.Game)!=None);
+        ccLink.sendEffectSelectability("defend_team_double_dmg",xBombingRun(Level.Game)!=None || ASGameInfo(Level.Game)!=None);
     
         //Adrenaline is disabled in Onslaught
         ccLink.sendEffectSelectability("full_adrenaline",ONSOnslaughtGame(Level.Game)==None);
@@ -2600,6 +2664,16 @@ function int StopCrowdControlEvent(string code, optional bool bKnownStop)
                 hotPotatoTimer=0;
             }
             break;
+        case "attack_team_double_dmg":
+        case "defend_team_double_dmg":
+            if (bKnownStop || teamDamageTimer > 0){
+                RemoveGameRule(class'DefenseDoubleDamageRules');
+                RemoveGameRule(class'OffenseDoubleDamageRules');
+                Broadcast("Team damage returns to normal...");
+                teamDamageTimer=0;
+            }
+            break;
+        
     }
     return Success;
 }
@@ -2720,6 +2794,10 @@ simulated function int doCrowdControlEvent(string code, string param[5], string 
             return FumbleBombingRunBall(viewer);
         case "bombing_run_hot_potato":
             return BombingRunHotPotato(viewer,duration);
+        case "attack_team_double_dmg":
+            return StartTeamDamageMode(viewer, duration, true);
+        case "defend_team_double_dmg":
+            return StartTeamDamageMode(viewer, duration, false);
         default:
             Broadcast("Got Crowd Control Effect -   code: "$code$"   viewer: "$viewer );
             break;
