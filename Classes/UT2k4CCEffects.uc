@@ -2608,6 +2608,9 @@ function StopAllCrowdControlEvents()
     StopCrowdControlEvent("flood");
     StopCrowdControlEvent("silent_hill");
     StopCrowdControlEvent("bouncy_castle");
+    StopCrowdControlEvent("bombing_run_hot_potato");
+    StopCrowdControlEvent("attack_team_double_dmg");
+    StopCrowdControlEvent("head_shots_only");
 }
 
 function int StopCrowdControlEvent(string code, optional bool bKnownStop)
@@ -2736,6 +2739,9 @@ function int StopCrowdControlEvent(string code, optional bool bKnownStop)
 //-Multiple Bombing Run Balls (Multiball)
 //-Swap goal locations (Ball goal or flags)
 //-Reset Bombing Run Ball
+//-Infinite Adrenaline (refill to 100 if below 100) for a minute
+//-General half damage for a minute (mutually exclusive with team damage effects)
+//-Bombing run ball knocks you back when you receive it
 
 simulated function int doCrowdControlEvent(string code, string param[5], string viewer, int type, int duration) {
     
