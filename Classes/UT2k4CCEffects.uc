@@ -2664,6 +2664,7 @@ function StopAllCrowdControlEvents()
     StopCrowdControlEvent("bombing_run_hot_potato");
     StopCrowdControlEvent("attack_team_double_dmg");
     StopCrowdControlEvent("head_shots_only");
+    StopCrowdControlEvent("infinite_adrenaline");
 }
 
 function int StopCrowdControlEvent(string code, optional bool bKnownStop)
