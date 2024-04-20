@@ -10,6 +10,14 @@ replication
         SetPawnBoneScale;
 }
 
+function bool CheckReplacement( Actor Other, out byte bSuperRelevant )
+{
+    if ( (xBombFlag(Other) != None) && (CrowdControlBombFlag(Other)==None) ){
+        ReplaceWith( Other, "UT2k4CrowdControl.CrowdControlBombFlag");
+        return false;
+    }
+    return true;
+}
 
 simulated function InitCC()
 {

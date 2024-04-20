@@ -77,6 +77,7 @@ public class UnrealTournament2004 : SimpleTCPPack
         new Effect("Heal Onslaught Power Cores", "heal_onslaught_cores"){Category = "Game Mode Specific Effects", Price = 10, Description = "In Onslaught Mode, this will fully heal both power cores."},
         new Effect("Reset Onslaught Power Nodes", "reset_onslaught_links"){Category = "Game Mode Specific Effects", Price = 15, Description = "In Onslaught Mode, this will reset all the intermediate power nodes to neutral."},
         new Effect("Fumble Bombing Run Ball", "fumble_bombing_run_ball"){Category = "Game Mode Specific Effects", Price = 5, Description = "In Bombing Run Mode, cause the ball carrier to fumble the ball!"},
+        new Effect("Hot Potato", "bombing_run_hot_potato"){Category = "Game Mode Specific Effects", Price = 5, Description = "In Bombing Run Mode, the ball becomes a hot potato!  If a player holds the ball for more than five seconds, they explode!"},
         new Effect("Wiggle Time", "thrust"){Price = 1, Description = "Everyone gets wiggly!"},
         new Effect("Switch First Place Player Team", "team_balance"){Category = "Game Mode Specific Effects", Price = 5, Description = "The player in first place switches to the other team!"},
         new Effect("Bouncy Castle", "bouncy_castle"){Price = 5, Description = "Everyone gets periodically bounced up into the air!"},

@@ -101,6 +101,10 @@ var int bounceTimer;
 const BounceTimerDefault = 60;
 var Vector BouncyCastleVelocity;
 
+var int hotPotatoTimer;
+const HotPotatoTimerDefault = 60;
+const HotPotatoMaxTime = 5;
+
 var int cfgMinPlayers;
 
 var bool bFat,bFast;
@@ -112,7 +116,7 @@ var bool effectSelectInit;
 replication
 {
     reliable if ( Role == ROLE_Authority )
-        behindTimer,speedTimer,meleeTimer,iceTimer,vampireTimer,floodTimer,forceWeaponTimer,bFat,bFast,forcedWeapon,numAddedBots,targetPlayer,GetEffectList,bodyEffectTimer,bodyEffect,gravityTimer,setLimblessScale,SetAllBoneScale,ModifyPlayer,SetPawnBoneScale,SetAllPlayerAnnouncerVoice,fogTimer,bounceTimer;
+        behindTimer,speedTimer,meleeTimer,iceTimer,vampireTimer,floodTimer,forceWeaponTimer,bFat,bFast,forcedWeapon,numAddedBots,targetPlayer,GetEffectList,bodyEffectTimer,bodyEffect,gravityTimer,setLimblessScale,SetAllBoneScale,ModifyPlayer,SetPawnBoneScale,SetAllPlayerAnnouncerVoice,fogTimer,bounceTimer,hotPotatoTimer;
 }
 
 function Init(Mutator baseMut)
@@ -171,6 +175,9 @@ function Broadcast(string msg)
 simulated function GetEffectList(out string effects[15], out int numEffects)
 {
     local int i;
+    local int hotPotatoRemaining;
+    local xBombingRun brGame;
+    local CrowdControlBombFlag ccBomb;
 
     if (behindTimer > 0) {
         effects[i]="Third-Person: "$behindTimer;
@@ -210,6 +217,20 @@ simulated function GetEffectList(out string effects[15], out int numEffects)
     }
     if (bounceTimer > 0) {
         effects[i]="Bouncy Castle: "$bounceTimer;
+        i++;
+    }
+    if (hotPotatoTimer > 0) {
+        effects[i]="Hot Potato: "$hotPotatoTimer;
+
+        brGame=xBombingRun(Level.Game);
+        if (brGame!=None){
+            ccBomb = CrowdControlBombFlag(brGame.Bomb);
+            if (ccBomb!=None && ccBomb.Holder!=None){
+                hotPotatoRemaining = HotPotatoMaxTime - (Level.TimeSeconds - ccBomb.GrabTime) + 1;
+                effects[i] $= " ("$hotPotatoRemaining$")";
+            }
+        }
+
         i++;
     }
     if (vampireTimer > 0) {
@@ -292,6 +313,14 @@ function PeriodicUpdates()
             StopCrowdControlEvent("bouncy_castle",true);
         } else if ((bounceTimer % 2) == 0){
             BounceAllPlayers();
+        }
+    } 
+    if (hotPotatoTimer > 0) {
+        hotPotatoTimer--;
+        if (hotPotatoTimer <= 0) {
+            StopCrowdControlEvent("bombing_run_hot_potato",true);
+        } else {
+            BRHotPotatoCheck();
         }
     } 
     if (vampireTimer > 0) {
@@ -1157,6 +1186,33 @@ function BounceAllPlayers()
         P.Velocity.Z +=  BouncyCastleVelocity.Z;
         //P.Acceleration = vect(0,0,0);
     }    
+}
+
+function BRHotPotatoCheck()
+{
+    local xBombingRun brGame;
+    local CrowdControlBombFlag ccBomb;
+
+    brGame=xBombingRun(Level.Game);
+    if (brGame==None){
+        return;
+    }
+
+    ccBomb = CrowdControlBombFlag(brGame.Bomb);
+    if (ccBomb==None){
+        return;
+    }
+
+    if (Level.TimeSeconds - ccBomb.GrabTime >= HotPotatoMaxTime) {
+        ccBomb.Holder.TakeDamage
+        (
+            10000,
+            ccBomb.Holder,
+            ccBomb.Holder.Location,
+            Vect(0,0,0),
+            class'HotPotato'
+        );
+    }
 }
 
 function bool IsGameActive()
@@ -2347,6 +2403,39 @@ function int FumbleBombingRunBall(string viewer)
     return Success;
 }
 
+function int BombingRunHotPotato(string viewer, int duration)
+{
+    local xBombingRun brGame;
+    local CrowdControlBombFlag ccBomb;
+
+    brGame=xBombingRun(Level.Game);
+    if (brGame==None){
+        return TempFail;
+    }
+
+    if (hotPotatoTimer>0) {
+        return TempFail;
+    }
+
+    ccBomb = CrowdControlBombFlag(brGame.Bomb);
+    if (ccBomb==None){
+        Broadcast("The ball isn't a crowd control ball!");
+        return TempFail;
+    }
+
+    if (ccBomb.Holder!=None){
+        ccBomb.GrabTime=Level.TimeSeconds; //Reset the grab time to now
+    }
+
+    Broadcast(viewer@"made the ball a hot potato!");
+
+    if (duration==0){
+        duration = HotPotatoTimerDefault;
+    }
+    hotPotatoTimer = duration;
+    return Success;
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////                                  CROWD CONTROL EFFECT MAPPING                                       ////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2365,6 +2454,7 @@ function HandleEffectSelectability(UT2k4CrowdControlLink ccLink)
         ccLink.sendEffectSelectability("heal_onslaught_cores",ONSOnslaughtGame(Level.Game)!=None);
         ccLink.sendEffectSelectability("reset_onslaught_links",ONSOnslaughtGame(Level.Game)!=None);
         ccLink.sendEffectSelectability("fumble_bombing_run_ball",xBombingRun(Level.Game)!=None);
+        ccLink.sendEffectSelectability("bombing_run_hot_potato",xBombingRun(Level.Game)!=None);
     
         //Adrenaline is disabled in Onslaught
         ccLink.sendEffectSelectability("full_adrenaline",ONSOnslaughtGame(Level.Game)==None);
@@ -2504,6 +2594,12 @@ function int StopCrowdControlEvent(string code, optional bool bKnownStop)
                 bounceTimer=0;
             }
             break;
+        case "bombing_run_hot_potato":
+            if (bKnownStop || hotPotatoTimer > 0){
+                Broadcast("The hot potato cools off...");
+                hotPotatoTimer=0;
+            }
+            break;
     }
     return Success;
 }
@@ -2622,6 +2718,8 @@ simulated function int doCrowdControlEvent(string code, string param[5], string 
             return ResetOnslaughtPowerNodes(viewer);
         case "fumble_bombing_run_ball":
             return FumbleBombingRunBall(viewer);
+        case "bombing_run_hot_potato":
+            return BombingRunHotPotato(viewer,duration);
         default:
             Broadcast("Got Crowd Control Effect -   code: "$code$"   viewer: "$viewer );
             break;
