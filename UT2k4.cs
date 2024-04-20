@@ -27,7 +27,7 @@ public class UnrealTournament2004 : SimpleTCPPack
         new Parameter("Shock Rifle", "shockrifle"),
         new Parameter("Link Gun", "linkgun"),
         new Parameter("Minigun", "minigun"),
-        new Parameter("Rocket Launcher", "rocketlauncher")
+        new Parameter("Rocket Launcher", "rocketlauncher"),
         new Parameter("Spider Mine Layer", "minelayer")
     );
 
@@ -40,7 +40,7 @@ public class UnrealTournament2004 : SimpleTCPPack
         new Parameter("Minigun Bullets", "minigunammo"),
         new Parameter("Rockets", "rocketammo"),
         new Parameter("Shock Core", "shockammo"),
-        new Parameter("Lightning Charges", "sniperammo")
+        new Parameter("Lightning Charges", "sniperammo"),
         new Parameter("Parasite Mines", "mineammo")
     );
 

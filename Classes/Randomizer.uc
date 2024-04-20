@@ -1,6 +1,6 @@
 class Randomizer extends Mutator;
 
-var config bool bShuffleSupers, bShuffleWeapons, bShuffleHealth, bShuffleAmmo, bShuffleAdrenaline, bShuffleOther,bShuffleWeaponsWithOthers;
+var config bool bShuffleSupers, bShuffleWeapons, bShuffleHealth, bShuffleAmmo, bShuffleAdrenaline, bShuffleOther,bShuffleWeaponsWithOthers, bRandomWeaponLockers, bRedeemerInLockers;
 
 
 function bool CheckReplacement( Actor Other, out byte bSuperRelevant )
@@ -35,15 +35,18 @@ function ShuffleItems(Actor a)
 {
     local xPickupBase item, bases[128],weapons[128];
     local Pickup pick,pickups[256];
+    local WeaponLocker locker;
     local int num_bases, num_weapons, num_pickups, i, slot;
 
     foreach a.AllActors(class'xPickupBase', item) {
         if(item.Owner != None) continue;
+        if(item.bStatic){continue;} //Can't move static things
         if (xWeaponBase(item)!=None){
             if (!bShuffleWeapons){continue;}
             if (!bShuffleSupers && (xWeaponBase(item).WeaponType.Default.InventoryGroup==0)){continue;}
             if (bShuffleWeaponsWithOthers){continue;}
             weapons[num_weapons++] = item;
+            //log("shuffling weapon base "$item);
         } else if (WildcardBase(item)!=None){
             continue; //Ignore these for now, until we come up with a better solution
         } else {
@@ -61,15 +64,19 @@ function ShuffleItems(Actor a)
                 if (!bShuffleSupers && RandoWeaponBase(item).isSuper){continue;}
             }
             bases[num_bases++] = item;
+            //log("shuffling pickup base "$item);
         }
     }
 
     foreach a.AllActors(class'Pickup',pick){
         if (pick.Owner != None) continue;
+        if (pick.bStatic){continue;} //Can't move static things
         if (!bShuffleAmmo && Ammo(pick)!=None){continue;}
         if (!bShuffleAdrenaline && AdrenalinePickup(pick)!=None){continue;}
         if (!bShuffleHealth && (TournamentHealth(pick)!=None || ShieldPickup(pick)!=None)){continue;}
         pickups[num_pickups++] = pick;
+        //log("shuffling pickup "$pick);
+        pick.RemoveFromNavigation(); //Take them out of the navigation info (not *totally* sure what this means)
     }
 
     for(i=0; i<num_bases; i++) {
@@ -88,8 +95,57 @@ function ShuffleItems(Actor a)
         slot = Rand(num_pickups);
         if(slot != i)
             SwapActors(pickups[i], pickups[slot]);
+            pickups[i].AddToNavigation(); //Add them back to the navigation info (so that, I guess, NPCs recalculate their paths)
     }
 
+    if (bRandomWeaponLockers){
+        foreach a.AllActors(class'WeaponLocker', locker) {
+            for (i=0;i<locker.Weapons.Length;i++){
+                locker.Weapons[i].WeaponClass=PickRandomWeaponClass();
+            }
+        }
+    }
+
+}
+
+function class<Weapon> PickRandomWeaponClass()
+{
+    local int numWeaponTypes;
+
+    numWeaponTypes=10;
+
+    if (bRedeemerInLockers){
+        numWeaponTypes+=1; //Redeemer
+    }
+
+    switch(Rand(numWeaponTypes)){
+        case 0:
+            return class'BioRifle';
+        case 1:
+            return class'FlakCannon';
+        case 2:
+            return class'LinkGun';
+        case 3:
+            return class'Minigun';
+        case 4:
+            return class'RocketLauncher';
+        case 5:
+            return class'ShockRifle';
+        case 6:
+            return class'SniperRifle';
+        case 7:
+            return class'ONSAVRiL';
+        case 8:
+            return class'ONSGrenadeLauncher';
+        case 9:
+            return class'ONSMineLayer';
+        
+        //Make sure super weapons are all at the end
+        case 10:
+            return class'Redeemer';
+    }
+
+    return None;
 }
 
 function SwapPickupBases(xPickupBase a, xPickupBase b)
@@ -199,6 +255,8 @@ static event string GetDescriptionText(string PropName) {
         case "bShuffleAdrenaline":  return "Should Adrenaline get randomized?";
         case "bShuffleOther":  return "Should other items (eg. UDamage) get randomized?";
         case "bShuffleWeaponsWithOthers":  return "Should weapons be randomized in the same pool as health, armour, and UDamage?";
+        case "bRandomWeaponLockers":  return "Should the weapons available in weapon lockers be randomized?";
+        case "bRedeemerInLockers":  return "Should Redeemers be allowed in randomized weapon lockers?";
     }
     return Super.GetDescriptionText(PropName);
 }
@@ -213,6 +271,8 @@ static function FillPlayInfo(PlayInfo PlayInfo) {
     PlayInfo.AddSetting("Randomizer", "bShuffleAdrenaline", "Shuffle Adrenaline", 0, 1, "Check");
     PlayInfo.AddSetting("Randomizer", "bShuffleOther", "Shuffle Other Items", 0, 1, "Check");
     PlayInfo.AddSetting("Randomizer", "bShuffleWeaponsWithOthers", "Shuffle Weapons With Other Items", 0, 1, "Check");
+    PlayInfo.AddSetting("Randomizer", "bRandomWeaponLockers", "Randomize Weapon Lockers", 0, 1, "Check");
+    PlayInfo.AddSetting("Randomizer", "bRedeemerInLockers", "Redeemers in Random Weapon Lockers", 0, 1, "Check");
 }
 
 
@@ -227,4 +287,6 @@ defaultproperties
     bShuffleAdrenaline=True
     bShuffleOther=True
     bShuffleWeaponsWithOthers=False
+    bRandomWeaponLockers=True
+    bRedeemerInLockers=False
 }
