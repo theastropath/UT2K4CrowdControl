@@ -2320,6 +2320,33 @@ function int ResetOnslaughtPowerNodes(string viewer)
     return Success;
 }
 
+function int FumbleBombingRunBall(string viewer)
+{
+    local xBombingRun brGame;
+    local int throwSpeed;
+
+    brGame=xBombingRun(Level.Game);
+    if (brGame==None){
+        return TempFail;
+    }
+
+    if (brGame.Bomb==None){
+        return TempFail;
+    }
+
+    if (brGame.Bomb.Holder==None){
+        return TempFail;
+    }
+
+    throwSpeed = 2000+Rand(1000);
+    brGame.Bomb.BroadcastLocalizedMessage( brGame.Bomb.MessageClass, 2, brGame.Bomb.Holder.PlayerReplicationInfo, None, brGame.Teams[brGame.Bomb.Holder.PlayerReplicationInfo.Team.TeamIndex] );
+    brGame.Bomb.Throw(brGame.Bomb.Holder.Location,VRand()*throwSpeed);
+
+    Broadcast(viewer@"caused the ball to be fumbled!");
+
+    return Success;
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////                                  CROWD CONTROL EFFECT MAPPING                                       ////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2337,6 +2364,7 @@ function HandleEffectSelectability(UT2k4CrowdControlLink ccLink)
         ccLink.sendEffectSelectability("team_balance",TeamGame(Level.Game)!=None);
         ccLink.sendEffectSelectability("heal_onslaught_cores",ONSOnslaughtGame(Level.Game)!=None);
         ccLink.sendEffectSelectability("reset_onslaught_links",ONSOnslaughtGame(Level.Game)!=None);
+        ccLink.sendEffectSelectability("fumble_bombing_run_ball",xBombingRun(Level.Game)!=None);
     
         //Adrenaline is disabled in Onslaught
         ccLink.sendEffectSelectability("full_adrenaline",ONSOnslaughtGame(Level.Game)==None);
@@ -2592,6 +2620,8 @@ simulated function int doCrowdControlEvent(string code, string param[5], string 
             return HealOnslaughtCores(viewer);
         case "reset_onslaught_links":
             return ResetOnslaughtPowerNodes(viewer);
+        case "fumble_bombing_run_ball":
+            return FumbleBombingRunBall(viewer);
         default:
             Broadcast("Got Crowd Control Effect -   code: "$code$"   viewer: "$viewer );
             break;
