@@ -66,7 +66,8 @@ enum EBodyEffect
     BE_Headless,
     BE_NoLimbs,
     BE_Fat,
-    BE_Skinny
+    BE_Skinny,
+    BE_PintSized
 };
 var EBodyEffect bodyEffect;
 
@@ -286,6 +287,8 @@ simulated function GetEffectList(out string effects[20], out int numEffects)
             effects[i]="Skin and Bones: ";
         }else if (bodyEffect==BE_Headless){
             effects[i]="Headless: ";
+        }else if (bodyEffect==BE_PintSized){
+            effects[i]="Pint-Sized: ";
         }
         effects[i]=effects[i]$bodyEffectTimer;
         i++;
@@ -400,6 +403,7 @@ function PeriodicUpdates()
         bodyEffectTimer--;
         if (bodyEffectTimer <= 0) {
             StopCrowdControlEvent("big_head",true);
+            StopCrowdControlEvent("pint_sized",true);
         }
     }  
     if (gravityTimer > 0) {
@@ -498,6 +502,8 @@ simulated function ModifyPlayer(Pawn Other)
             SetAllBoneScale(Other,FatScale);
         } else if (bodyEffect==BE_Skinny){
             SetAllBoneScale(Other,SkinnyScale);
+        } else if (bodyEffect==BE_PintSized){
+            MakePintSized(xPawn(Other));
         }
     }
 
@@ -1951,6 +1957,56 @@ function int BlueRedeemerShell(String viewer)
     return Success;
 }
 
+function MakePintSized(xPawn P)
+{
+    if (P==None){return;}
+    
+    P.SetDrawscale(0.5 * P.Default.DrawScale);
+    P.bCanCrouch = false;
+    P.SetCollisionSize(P.CollisionRadius, 0.5*P.CollisionHeight);
+    P.BaseEyeheight = 0.8 * P.CollisionHeight;
+}
+
+function EndPintSized()
+{
+    local xPawn P;
+
+    foreach AllActors(class'xPawn',P){
+        P.SetDrawscale(P.Default.DrawScale);
+        P.bCanCrouch = P.default.bCanCrouch;
+        P.BaseEyeheight = P.Default.BaseEyeheight;
+        P.ForceCrouch();
+    }
+}
+
+simulated function int StartPintSized(string viewer, int duration)
+{
+    local xPawn p;
+    local bool changed;
+
+    if (bodyEffectTimer>0) {
+        return TempFail;
+    }
+
+    foreach AllActors(class'xPawn',p){
+        changed=True;
+        MakePintSized(p);
+    }
+
+    //No pawns to change!
+    if (!changed){
+        return TempFail;
+    }
+
+    Broadcast(viewer@"made everyone pint-sized!");
+    if (duration==0){
+        duration = BodyEffectTimerDefault;
+    }
+    bodyEffectTimer = duration;
+    bodyEffect=BE_PintSized;
+    return Success;
+}
+
 simulated function int StartBigHeadMode(string viewer, int duration)
 {
     local Pawn p;
@@ -2781,6 +2837,7 @@ function StopAllCrowdControlEvents()
     StopCrowdControlEvent("infinite_adrenaline");
     StopCrowdControlEvent("thorns");
     StopCrowdControlEvent("octojump");
+    StopCrowdControlEvent("pint_sized");
 }
 
 function int StopCrowdControlEvent(string code, optional bool bKnownStop)
@@ -2839,6 +2896,14 @@ function int StopCrowdControlEvent(string code, optional bool bKnownStop)
             if (bKnownStop || bodyEffectTimer > 0){
                 Broadcast("Your body returns to normal...");
                 RestoreBodyScale();
+                BodyEffect = BE_None;
+                bodyEffectTimer=0;
+            }
+            break;
+        case "pint_sized":
+            if (bKnownStop || bodyEffectTimer > 0){
+                Broadcast("Your body returns to normal...");
+                EndPintSized();
                 BodyEffect = BE_None;
                 bodyEffectTimer=0;
             }
@@ -3052,6 +3117,8 @@ simulated function int doCrowdControlEvent(string code, string param[5], string 
             return StartThornsMode(viewer,duration);
         case "octojump":
             return StartOctoJump(viewer,duration);
+        case "pint_sized":
+            return StartPintSized(viewer,duration);
         default:
             Broadcast("Got Crowd Control Effect -   code: "$code$"   viewer: "$viewer );
             break;

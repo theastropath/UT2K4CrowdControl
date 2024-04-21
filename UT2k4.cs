@@ -62,6 +62,7 @@ public class UnrealTournament2004 : SimpleTCPPack
         new Effect("Big Head Mode", "big_head"){Price = 4, Description = "All players get an inflated ego!", Duration=60},
         new Effect("Headless", "headless"){Price = 4, Description = "All players lose their head!", Duration=60},
         new Effect("Limbless Mode", "limbless"){Price = 4, Description = "All players lose their limbs!", Duration=60},
+        new Effect("Pint-Sized", "pint_sized"){Price = 4, Description = "All players become much smaller!", Duration=60},
         new Effect("Gotta Go Fast", "gotta_go_fast"){Price = 10, Description = "It's extra fast mode!", Duration=60},
         new Effect("Gotta Go Slow", "gotta_go_slow"){Price = 10, Description = "It's extra slow mode!", Duration=15},
         new Effect("Swap All Players Positions", "swap_player_position"){Price = 10, Description = "All players swap positions on the map!"},
