@@ -38,6 +38,10 @@ const HeadShotTimerDefault = 60;
 var int thornsTimer;
 const ThornsTimerDefault = 60;
 
+var int octoJumpTimer;
+const OctoJumpTimerDefault = 60;
+var int origNumJumps;
+
 var int infAdrenalineTimer;
 const InfAdrenalineTimerDefault = 60;
 
@@ -129,7 +133,7 @@ var bool effectSelectInit;
 replication
 {
     reliable if ( Role == ROLE_Authority )
-        behindTimer,speedTimer,meleeTimer,iceTimer,vampireTimer,floodTimer,forceWeaponTimer,bFat,bFast,forcedWeapon,numAddedBots,targetPlayer,GetEffectList,bodyEffectTimer,bodyEffect,gravityTimer,setLimblessScale,SetAllBoneScale,ModifyPlayer,SetPawnBoneScale,SetAllPlayerAnnouncerVoice,fogTimer,bounceTimer,hotPotatoTimer,teamDamageTimer,teamDamageHoldingTeam,headShotTimer,thornsTimer;
+        behindTimer,speedTimer,meleeTimer,iceTimer,vampireTimer,floodTimer,forceWeaponTimer,bFat,bFast,forcedWeapon,numAddedBots,targetPlayer,GetEffectList,bodyEffectTimer,bodyEffect,gravityTimer,setLimblessScale,SetAllBoneScale,ModifyPlayer,SetPawnBoneScale,SetAllPlayerAnnouncerVoice,fogTimer,bounceTimer,hotPotatoTimer,teamDamageTimer,teamDamageHoldingTeam,headShotTimer,thornsTimer,octoJumpTimer;
 }
 
 function Init(Mutator baseMut)
@@ -291,6 +295,10 @@ simulated function GetEffectList(out string effects[20], out int numEffects)
         i++;
     }
 
+    if (octoJumpTimer > 0) {
+        effects[i]="Octojump: "$octoJumpTimer;
+        i++;
+    }
 
     if (numAddedBots > 0) {
         effects[i]="Added Bots: "$numAddedBots;
@@ -409,7 +417,13 @@ function PeriodicUpdates()
         }
     } 
 
-    
+    if (octoJumpTimer > 0) {
+        octoJumpTimer--;
+        if (octoJumpTimer <= 0) {
+            StopCrowdControlEvent("octojump",true);
+        }
+    }
+
     
 
 }
@@ -493,6 +507,12 @@ simulated function ModifyPlayer(Pawn Other)
         } else {
             Other.GroundSpeed = class'Pawn'.Default.GroundSpeed / 3;
         }
+    }
+
+    if (octoJumpTimer>0 && xPawn(Other)!=None){
+        xPawn(Other).MaxMultiJump=7;
+        xPawn(Other).MultiJumpRemaining=7;
+        xPawn(Other).MultiJumpBoost=50;
     }
 }
 
@@ -638,6 +658,18 @@ function SetAllPlayersGroundSpeed(int speed)
     foreach AllActors(class'Pawn',p) {
         //Broadcast("Speed before: "$p.GroundSpeed$"  Speed After: "$speed);
         p.GroundSpeed = speed;
+    }
+}
+
+//The multijumps are on top of the regular jump, so numJumps=3 means you can jump 4 times
+function SetAllPlayersMultiJump(int numJumps, int jumpBoost)
+{
+    local xPawn p;
+    
+    foreach AllActors(class'xPawn',p) {
+        p.MaxMultiJump = numJumps;
+        p.MultiJumpRemaining = numJumps;
+        p.MultiJumpBoost=jumpBoost;
     }
 }
 
@@ -2643,6 +2675,36 @@ function int StartInfiniteAdrenaline(string viewer, int duration)
     return Success;
 }
 
+function int StartOctoJump(String viewer, int duration)
+{
+    local xPawn p;
+
+    if (octoJumpTimer>0) {
+        return TempFail;
+    }
+
+    foreach AllActors(class'xPawn',p){
+        origNumJumps=p.MaxMultiJump;
+        break;
+    }
+
+    SetAllPlayersMultiJump(7,50);
+
+    if (duration==0){
+        duration = OctoJumpTimerDefault;
+    }
+    octoJumpTimer = duration;
+    Broadcast(viewer$" made everyone able to jump 8 times!");
+   
+    return Success;   
+}
+
+function EndOctoJump()
+{
+    SetAllPlayersMultiJump(origNumJumps,class'xPawn'.Default.MultiJumpBoost);
+}
+
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////                                  CROWD CONTROL EFFECT MAPPING                                       ////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2718,6 +2780,7 @@ function StopAllCrowdControlEvents()
     StopCrowdControlEvent("head_shots_only");
     StopCrowdControlEvent("infinite_adrenaline");
     StopCrowdControlEvent("thorns");
+    StopCrowdControlEvent("octojump");
 }
 
 function int StopCrowdControlEvent(string code, optional bool bKnownStop)
@@ -2841,6 +2904,13 @@ function int StopCrowdControlEvent(string code, optional bool bKnownStop)
             if (bKnownStop || infAdrenalineTimer > 0){
                 Broadcast("Your adrenaline has limits again...");
                 infAdrenalineTimer=0;
+            }
+            break;
+        case "octojump":
+            if (bKnownStop || octoJumpTimer > 0){
+                EndOctoJump();
+                Broadcast("You lose the ability to jump 8 times...");
+                octoJumpTimer=0;
             }
             break;
         
@@ -2980,6 +3050,8 @@ simulated function int doCrowdControlEvent(string code, string param[5], string 
             return StartInfiniteAdrenaline(viewer,duration);
         case "thorns":
             return StartThornsMode(viewer,duration);
+        case "octojump":
+            return StartOctoJump(viewer,duration);
         default:
             Broadcast("Got Crowd Control Effect -   code: "$code$"   viewer: "$viewer );
             break;

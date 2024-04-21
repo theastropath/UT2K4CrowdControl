@@ -85,6 +85,7 @@ public class UnrealTournament2004 : SimpleTCPPack
         new Effect("Switch First Place Player Team", "team_balance"){Category = "Game Mode Specific Effects", Price = 5, Description = "The player in first place switches to the other team!"},
         new Effect("Bouncy Castle", "bouncy_castle"){Price = 5, Description = "Everyone gets periodically bounced up into the air!"},
         new Effect("Silent Hill Mode", "silent_hill"){Price = 10, Description = "The whole level becomes as foggy as Silent Hill!"},
+        new Effect("Octojump", "octojump"){Price = 2, Description = "Everyone can jump in the air 8 times!"},
         new Effect("Select Announcer Voice", "announcer")
         {
             Parameters = announcerList,
