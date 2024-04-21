@@ -35,6 +35,9 @@ var bool teamDamageHoldingTeam;
 var int headShotTimer;
 const HeadShotTimerDefault = 60;
 
+var int thornsTimer;
+const ThornsTimerDefault = 60;
+
 var int infAdrenalineTimer;
 const InfAdrenalineTimerDefault = 60;
 
@@ -126,7 +129,7 @@ var bool effectSelectInit;
 replication
 {
     reliable if ( Role == ROLE_Authority )
-        behindTimer,speedTimer,meleeTimer,iceTimer,vampireTimer,floodTimer,forceWeaponTimer,bFat,bFast,forcedWeapon,numAddedBots,targetPlayer,GetEffectList,bodyEffectTimer,bodyEffect,gravityTimer,setLimblessScale,SetAllBoneScale,ModifyPlayer,SetPawnBoneScale,SetAllPlayerAnnouncerVoice,fogTimer,bounceTimer,hotPotatoTimer,teamDamageTimer,teamDamageHoldingTeam,headShotTimer;
+        behindTimer,speedTimer,meleeTimer,iceTimer,vampireTimer,floodTimer,forceWeaponTimer,bFat,bFast,forcedWeapon,numAddedBots,targetPlayer,GetEffectList,bodyEffectTimer,bodyEffect,gravityTimer,setLimblessScale,SetAllBoneScale,ModifyPlayer,SetPawnBoneScale,SetAllPlayerAnnouncerVoice,fogTimer,bounceTimer,hotPotatoTimer,teamDamageTimer,teamDamageHoldingTeam,headShotTimer,thornsTimer;
 }
 
 function Init(Mutator baseMut)
@@ -260,6 +263,10 @@ simulated function GetEffectList(out string effects[20], out int numEffects)
         effects[i]="Head Shots Only: "$headShotTimer;
         i++;
     }
+    if (thornsTimer > 0) {
+        effects[i]="Thorns: "$thornsTimer;
+        i++;
+    }
     if (forceWeaponTimer > 0) {
         effects[i]="Forced "$forcedWeapon.default.ItemName$": "$forceWeaponTimer;
         i++;
@@ -367,6 +374,12 @@ function PeriodicUpdates()
         headShotTimer--;
         if (headShotTimer <= 0) {
             StopCrowdControlEvent("head_shots_only",true);
+        }
+    }  
+    if (thornsTimer > 0) {
+        thornsTimer--;
+        if (thornsTimer <= 0) {
+            StopCrowdControlEvent("thorns",true);
         }
     }  
     if (forceWeaponTimer > 0) {
@@ -2107,7 +2120,12 @@ function int StartTeamDamageMode(string viewer, int duration, bool holdingTeam)
     if (teamDamageTimer>0) {
         return TempFail;
     }
-
+    if (headShotTimer>0) {
+        return TempFail;
+    }
+    if (thornsTimer>0){
+        return TempFail;
+    }
     if (xBombingRun(Level.Game)==None && ASGameInfo(Level.Game)==None){
         return TempFail;
     }
@@ -2151,7 +2169,12 @@ function int StartHeadShotsOnly(string viewer, int duration)
     if (headShotTimer>0) {
         return TempFail;
     }
-
+    if (teamDamageTimer>0) {
+        return TempFail;
+    }
+    if (thornsTimer>0){
+        return TempFail;
+    }
     //Check if game rule is already in place, fail if it is
     if (IsGameRuleActive(class'HeadShotsOnlyRules')){
         return TempFail;
@@ -2167,6 +2190,35 @@ function int StartHeadShotsOnly(string viewer, int duration)
         duration = HeadShotTimerDefault;
     }
     headShotTimer = duration;
+    return Success;
+}
+
+function int StartThornsMode(string viewer, int duration)
+{
+    if (headShotTimer>0) {
+        return TempFail;
+    }
+    if (teamDamageTimer>0) {
+        return TempFail;
+    }
+    if (thornsTimer>0){
+        return TempFail;
+    }
+    //Check if game rule is already in place, fail if it is
+    if (IsGameRuleActive(class'ThornsRules')){
+        return TempFail;
+    }
+
+    //Attempt to add the game rules, fail if it doesn't for some reason
+    if (!AddNewGameRule(class'ThornsRules')){
+        return TempFail;
+    }
+
+    Broadcast(viewer@"gave everyone thorns!");
+    if (duration==0){
+        duration = ThornsTimerDefault;
+    }
+    thornsTimer = duration;
     return Success;
 }
 
@@ -2665,6 +2717,7 @@ function StopAllCrowdControlEvents()
     StopCrowdControlEvent("attack_team_double_dmg");
     StopCrowdControlEvent("head_shots_only");
     StopCrowdControlEvent("infinite_adrenaline");
+    StopCrowdControlEvent("thorns");
 }
 
 function int StopCrowdControlEvent(string code, optional bool bKnownStop)
@@ -2777,6 +2830,13 @@ function int StopCrowdControlEvent(string code, optional bool bKnownStop)
                 headShotTimer=0;
             }
             break;
+        case "thorns":
+            if (bKnownStop || thornsTimer > 0){
+                RemoveGameRule(class'ThornsRules');
+                Broadcast("The thorns wither away...");
+                thornsTimer=0;
+            }
+            break;
         case "infinite_adrenaline":
             if (bKnownStop || infAdrenalineTimer > 0){
                 Broadcast("Your adrenaline has limits again...");
@@ -2799,7 +2859,6 @@ function int StopCrowdControlEvent(string code, optional bool bKnownStop)
 //-Multiple Bombing Run Balls (Multiball)
 //-Swap goal locations (Ball goal or flags)
 //-Reset Bombing Run Ball
-//-Infinite Adrenaline (refill to 100 if below 100) for a minute
 //-General half damage for a minute (mutually exclusive with team damage effects)
 //-Bombing run ball knocks you back when you receive it
 
@@ -2919,6 +2978,8 @@ simulated function int doCrowdControlEvent(string code, string param[5], string 
             return StartHeadShotsOnly(viewer,duration);
         case "infinite_adrenaline":
             return StartInfiniteAdrenaline(viewer,duration);
+        case "thorns":
+            return StartThornsMode(viewer,duration);
         default:
             Broadcast("Got Crowd Control Effect -   code: "$code$"   viewer: "$viewer );
             break;

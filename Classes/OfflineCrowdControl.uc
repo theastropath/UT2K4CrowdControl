@@ -737,6 +737,7 @@ defaultproperties
     effects(44)=(EffectName="defend_team_double_dmg",quantityMin=0,quantityMax=0,durationMin=10,durationMax=60,enabled=true)
     effects(45)=(EffectName="head_shots_only",quantityMin=0,quantityMax=0,durationMin=10,durationMax=60,enabled=true)
     effects(46)=(EffectName="infinite_adrenaline",quantityMin=0,quantityMax=0,durationMin=10,durationMax=60,enabled=true)
+    effects(47)=(EffectName="thorns",quantityMin=0,quantityMax=0,durationMin=10,durationMax=60,enabled=true)
     botNames(0)="Jim"
     botNames(1)="James"
     botNames(2)="Jeremy"

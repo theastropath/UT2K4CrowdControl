@@ -144,6 +144,7 @@ public class UnrealTournament2004 : SimpleTCPPack
         new Effect("Melee Only!", "melee_only") { Category = "Weapons & Damage", Price = 10, Description = "Never mind these guns, it's punching time!", Duration=60 },
         new Effect("Bonus Damage for Last Place", "last_place_bonus_dmg") { Category = "Weapons & Damage", Price = 5, Description = "Help out the last place player and grant them bonus damage!" },
         new Effect("All Players Drop Current Weapon", "drop_selected_item") { Category = "Weapons & Damage", Price = 10, Description = "Who needs this weapon anyway..." },
+        new Effect("Thorns", "thorns") { Category = "Weapons & Damage", Price = 5, Description = "Any damage a player deals gets reflected back on them at 50% strength!" },
 
         //new("Announcer Voice", "announcer", ItemKind.BidWar)
         //{
