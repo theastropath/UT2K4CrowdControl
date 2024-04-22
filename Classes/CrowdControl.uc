@@ -289,6 +289,6 @@ defaultproperties
 {
     bAddToServerPackages=True
     FriendlyName="Crowd Control"
-    Description="Let viewers mess with your game by sending effects!"
+    Description="Let viewers mess with your game by sending effects!||Use this mutator in combination with Crowd Control from https://crowdcontrol.live/||Encountering issues or just want to learn more?  Join us on Discord at https://Mods4Ever.com/discord||Source code and updates for this mutator can be found at https://Github.com/TheAstropath/UT2K4CrowdControl"
     crowd_control_addr="127.0.0.1"
 }

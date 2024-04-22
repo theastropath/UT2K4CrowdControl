@@ -683,7 +683,7 @@ defaultproperties
 {
     bAddToServerPackages=True
     FriendlyName="Simulated Crowd Control"
-    Description="Randomly send Crowd Control effects without any viewers!"
+    Description="Randomly send Crowd Control effects without any viewers!||Encountering issues or just want to learn more?  Join us on Discord at https://Mods4Ever.com/discord||Source code and updates for this mutator can be found at https://Github.com/TheAstropath/UT2K4CrowdControl"
     defaultMutatorName="Simulated Crowd Control"
     effectFrequency=1
     effectChance=0.05

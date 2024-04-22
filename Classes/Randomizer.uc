@@ -281,7 +281,7 @@ static function FillPlayInfo(PlayInfo PlayInfo) {
 defaultproperties
 {
     FriendlyName="Randomizer"
-    Description="Shuffle all the items in the level amongst each other"
+    Description="Shuffle all the items in the level amongst themselves!||Encountering issues or just want to learn more?  Join us on Discord at https://Mods4Ever.com/discord||Source code and updates for this mutator can be found at https://Github.com/TheAstropath/UT2K4CrowdControl"
     bShuffleSupers=True
     bShuffleWeapons=True
     bShuffleHealth=True
