@@ -1331,6 +1331,23 @@ function bool IsGameActive()
     return !Level.Game.bWaitingToStartMatch && !Level.Game.bGameEnded;
 }
 
+function bool IsAdrenalineActive()
+{
+    local Controller c;
+    local AdrenalinePickup p;
+    
+    foreach AllActors(class'Controller',c) {
+        return c.bAdrenalineEnabled;
+    }
+
+    foreach AllActors(class'AdrenalinePickup'){
+        return True;
+    }
+
+    return False;
+
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////                                CROWD CONTROL EFFECT FUNCTIONS                                       ////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2767,6 +2784,8 @@ function EndOctoJump()
 
 function HandleEffectSelectability(UT2k4CrowdControlLink ccLink)
 {
+    local bool adrenaline;
+
     if (effectSelectInit==False){
         ccLink.sendEffectSelectability("full_fat",isLocal);
         ccLink.sendEffectSelectability("skin_and_bones",isLocal);
@@ -2784,11 +2803,12 @@ function HandleEffectSelectability(UT2k4CrowdControlLink ccLink)
         ccLink.sendEffectSelectability("defend_team_double_dmg",xBombingRun(Level.Game)!=None || ASGameInfo(Level.Game)!=None);
     
         //Adrenaline is disabled in Onslaught
-        ccLink.sendEffectSelectability("full_adrenaline",ONSOnslaughtGame(Level.Game)==None);
-        ccLink.sendEffectSelectability("last_place_ultra_adrenaline",ONSOnslaughtGame(Level.Game)==None);
-        ccLink.sendEffectSelectability("all_berserk",ONSOnslaughtGame(Level.Game)==None);
-        ccLink.sendEffectSelectability("all_invisible",ONSOnslaughtGame(Level.Game)==None);
-        ccLink.sendEffectSelectability("all_regen",ONSOnslaughtGame(Level.Game)==None);
+        adrenaline = IsAdrenalineActive();
+        ccLink.sendEffectSelectability("full_adrenaline",adrenaline);
+        ccLink.sendEffectSelectability("last_place_ultra_adrenaline",adrenaline);
+        ccLink.sendEffectSelectability("all_berserk",adrenaline);
+        ccLink.sendEffectSelectability("all_invisible",adrenaline);
+        ccLink.sendEffectSelectability("all_regen",adrenaline);
     
         effectSelectInit=True;
     }
