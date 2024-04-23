@@ -1340,7 +1340,7 @@ function bool IsAdrenalineActive()
         return c.bAdrenalineEnabled;
     }
 
-    foreach AllActors(class'AdrenalinePickup'){
+    foreach AllActors(class'AdrenalinePickup',p){
         return True;
     }
 
@@ -1483,7 +1483,9 @@ function int GottaGoFast(String viewer, int duration)
     if (speedTimer>0) {
         return TempFail;
     }
-
+    if (floodTimer>0) {
+        return TempFail;
+    }
     SetAllPlayersGroundSpeed(class'Pawn'.Default.GroundSpeed * 3);
     if (duration==0){
         duration = SpeedTimerDefault;
@@ -1501,7 +1503,9 @@ function int GottaGoSlow(String viewer, int duration)
     if (speedTimer>0) {
         return TempFail;
     }
-
+    if (floodTimer>0) {
+        return TempFail;
+    }
     SetAllPlayersGroundSpeed(class'Pawn'.Default.GroundSpeed / 3);
 
     if (duration==0){
@@ -2428,6 +2432,9 @@ function int EnableMoonPhysics(string viewer, int duration)
     if (gravityTimer>0) {
         return TempFail;
     }
+    if (floodTimer>0) {
+        return TempFail;
+    }
     if (duration==0){
         duration = GravityTimerDefault;
     }
@@ -2441,6 +2448,10 @@ function int EnableMoonPhysics(string viewer, int duration)
 function int EnableIcePhysics(string viewer, int duration)
 {
     if (iceTimer>0) {
+        return TempFail;
+    }
+
+    if (floodTimer>0) {
         return TempFail;
     }
     
@@ -2458,6 +2469,18 @@ function int EnableIcePhysics(string viewer, int duration)
 function int StartFlood(string viewer, int duration)
 {
     if (floodTimer>0) {
+        return TempFail;
+    }
+    if (iceTimer>0) {
+        return TempFail;
+    }
+    if (gravityTimer>0) {
+        return TempFail;
+    }
+    if (octoJumpTimer>0) {
+        return TempFail;
+    }
+    if (speedTimer>0) {
         return TempFail;
     }
     Broadcast(viewer@"started a flood!");
@@ -2755,7 +2778,9 @@ function int StartOctoJump(String viewer, int duration)
     if (octoJumpTimer>0) {
         return TempFail;
     }
-
+    if (floodTimer>0) {
+        return TempFail;
+    }
     foreach AllActors(class'xPawn',p){
         origNumJumps=p.MaxMultiJump;
         break;
