@@ -5,6 +5,11 @@ function int NetDamage( int OriginalDamage, int Damage, pawn injured, pawn insti
     if ( NextGameRules != None )
         return NextGameRules.NetDamage( OriginalDamage,Damage,injured,instigatedBy,HitLocation,Momentum,DamageType );
 
+    //Sneak these special Crowd Control damage types past the headshot restriction
+    if (DamageType==class'HotPotato' || DamageType==class'Thanos' || DamageType==class'Thorns'){
+        return Damage;
+    }
+
     if (!injured.IsHeadShot(HitLocation,injured.Location-instigatedBy.Location, 1.0)){
         return 0;
     }
