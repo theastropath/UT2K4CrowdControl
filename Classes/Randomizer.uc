@@ -1,6 +1,6 @@
 class Randomizer extends Mutator;
 
-var config bool bShuffleSupers, bShuffleWeapons, bShuffleHealth, bShuffleAmmo, bShuffleAdrenaline, bShuffleOther,bShuffleWeaponsWithOthers, bRandomWeaponLockers, bSuperWeaponsInLockers;
+var config bool bShuffleSupers, bShuffleWeapons, bShuffleHealth, bShuffleAmmo, bShuffleAdrenaline, bShuffleOther,bShuffleWeaponsWithOthers, bRandomWeaponLockers, bSuperWeaponsInLockers, bFullyRandomWeapons;
 
 
 function bool CheckReplacement( Actor Other, out byte bSuperRelevant )
@@ -41,6 +41,16 @@ function ShuffleItems(Actor a)
     foreach a.AllActors(class'xPickupBase', item) {
         if(item.Owner != None) continue;
         //if(item.bStatic){continue;} //Can't move static things
+
+        if (bFullyRandomWeapons){
+            if (xWeaponBase(item)!=None){
+                xWeaponBase(item).WeaponType = PickRandomWeaponClass(bShuffleSupers);
+                xWeaponBase(item).bDelayedSpawn = (xWeaponBase(item).WeaponType.Default.InventoryGroup==0);
+            } else if (RandoWeaponBase(item)!=None){
+                RandoWeaponBase(item).SetWeaponType(PickRandomWeaponClass(bShuffleSupers));
+            }
+        }
+
         if (xWeaponBase(item)!=None){
             if (!bShuffleWeapons){continue;}
             if (!bShuffleSupers && (xWeaponBase(item).WeaponType.Default.InventoryGroup==0)){continue;}
@@ -105,20 +115,20 @@ function ShuffleItems(Actor a)
     if (bRandomWeaponLockers){
         foreach a.AllActors(class'WeaponLocker', locker) {
             for (i=0;i<locker.Weapons.Length;i++){
-                locker.Weapons[i].WeaponClass=PickRandomWeaponClass();
+                locker.Weapons[i].WeaponClass=PickRandomWeaponClass(bSuperWeaponsInLockers);
             }
         }
     }
 
 }
 
-function class<Weapon> PickRandomWeaponClass()
+function class<Weapon> PickRandomWeaponClass(optional bool bAllowSupers)
 {
     local int numWeaponTypes;
 
     numWeaponTypes=10;
 
-    if (bSuperWeaponsInLockers){
+    if (bAllowSupers){
         numWeaponTypes+=2; //Redeemer and instagib rifle
     }
 
@@ -263,6 +273,7 @@ static event string GetDescriptionText(string PropName) {
         case "bShuffleWeaponsWithOthers":  return "Should weapons be randomized in the same pool as health, armour, and UDamage?";
         case "bRandomWeaponLockers":  return "Should the weapons available in weapon lockers be randomized?";
         case "bSuperWeaponsInLockers":  return "Should super weapons (Redeemer and Instagib Rifle) be allowed in randomized weapon lockers?";
+        case "bFullyRandomWeapons":  return "Should weapons be completely replaced with random weapon choices?";
     }
     return Super.GetDescriptionText(PropName);
 }
@@ -279,6 +290,7 @@ static function FillPlayInfo(PlayInfo PlayInfo) {
     PlayInfo.AddSetting("Randomizer", "bShuffleWeaponsWithOthers", "Shuffle Weapons With Other Items", 0, 1, "Check");
     PlayInfo.AddSetting("Randomizer", "bRandomWeaponLockers", "Randomize Weapon Lockers", 0, 1, "Check");
     PlayInfo.AddSetting("Randomizer", "bSuperWeaponsInLockers", "Super Weapons in Random Weapon Lockers", 0, 1, "Check");
+    PlayInfo.AddSetting("Randomizer", "bFullyRandomWeapons", "Fully Random Weapons", 0, 1, "Check");
 }
 
 
@@ -295,4 +307,5 @@ defaultproperties
     bShuffleWeaponsWithOthers=False
     bRandomWeaponLockers=True
     bSuperWeaponsInLockers=False
+    bFullyRandomWeapons=False
 }
