@@ -78,15 +78,15 @@ public class UnrealTournament2004 : SimpleTCPPack
         new Effect("Heal Onslaught Power Cores", "heal_onslaught_cores"){Category = "Game Mode Specific Effects", Price = 10, Description = "In Onslaught Mode, this will fully heal both power cores."},
         new Effect("Reset Onslaught Power Nodes", "reset_onslaught_links"){Category = "Game Mode Specific Effects", Price = 15, Description = "In Onslaught Mode, this will reset all the intermediate power nodes to neutral."},
         new Effect("Fumble Bombing Run Ball", "fumble_bombing_run_ball"){Category = "Game Mode Specific Effects", Price = 5, Description = "In Bombing Run Mode, cause the ball carrier to fumble the ball!"},
-        new Effect("Hot Potato", "bombing_run_hot_potato"){Category = "Game Mode Specific Effects", Price = 5, Description = "In Bombing Run Mode, the ball becomes a hot potato!  If a player holds the ball for more than five seconds, they explode!"},
-        new Effect("Attacking Team Double Damage", "attack_team_double_dmg"){Category = "Game Mode Specific Effects", Price = 5, Description = "In Bombing Run or Assault Mode, the attacking team deals double damage!"},
-        new Effect("Defending Team Double Damage", "defend_team_double_dmg"){Category = "Game Mode Specific Effects", Price = 5, Description = "In Bombing Run or Assault Mode, the defending team deals double damage!"},
-        new Effect("Head Shots Only", "head_shots_only"){Category = "Weapons & Damage", Price = 10, Description = "Only shots to the head actually do damage!"},
+        new Effect("Hot Potato", "bombing_run_hot_potato"){Category = "Game Mode Specific Effects", Price = 5, Description = "In Bombing Run Mode, the ball becomes a hot potato!  If a player holds the ball for more than five seconds, they explode!", Duration=60 },
+        new Effect("Attacking Team Double Damage", "attack_team_double_dmg"){Category = "Game Mode Specific Effects", Price = 5, Description = "In Bombing Run or Assault Mode, the attacking team deals double damage!", Duration=60 },
+        new Effect("Defending Team Double Damage", "defend_team_double_dmg"){Category = "Game Mode Specific Effects", Price = 5, Description = "In Bombing Run or Assault Mode, the defending team deals double damage!", Duration=60 },
+        new Effect("Head Shots Only", "head_shots_only"){Category = "Weapons & Damage", Price = 10, Description = "Only shots to the head actually do damage!", Duration=60 },
         new Effect("Wiggle Time", "thrust"){Price = 1, Description = "Everyone gets wiggly!"},
         new Effect("Switch First Place Player Team", "team_balance"){Category = "Game Mode Specific Effects", Price = 5, Description = "The player in first place switches to the other team!"},
         new Effect("Bouncy Castle", "bouncy_castle"){Price = 5, Description = "Everyone gets periodically bounced up into the air!"},
         new Effect("Silent Hill Mode", "silent_hill"){Price = 10, Description = "The whole level becomes as foggy as Silent Hill!"},
-        new Effect("Octojump", "octojump"){Price = 2, Description = "Everyone can jump in the air 8 times!"},
+        new Effect("Octojump", "octojump"){Price = 2, Description = "Everyone can jump in the air 8 times!", Duration=60 },
         new Effect("Select Announcer Voice", "announcer")
         {
             Parameters = announcerList,
@@ -146,7 +146,7 @@ public class UnrealTournament2004 : SimpleTCPPack
         new Effect("Melee Only!", "melee_only") { Category = "Weapons & Damage", Price = 10, Description = "Never mind these guns, it's punching time!", Duration=60 },
         new Effect("Bonus Damage for Last Place", "last_place_bonus_dmg") { Category = "Weapons & Damage", Price = 5, Description = "Help out the last place player and grant them bonus damage!" },
         new Effect("All Players Drop Current Weapon", "drop_selected_item") { Category = "Weapons & Damage", Price = 10, Description = "Who needs this weapon anyway..." },
-        new Effect("Thorns", "thorns") { Category = "Weapons & Damage", Price = 5, Description = "Any damage a player deals gets reflected back on them at 50% strength!" },
+        new Effect("Thorns", "thorns") { Category = "Weapons & Damage", Price = 5, Description = "Any damage a player deals gets reflected back on them at 50% strength!", Duration=60 },
 
         //new("Announcer Voice", "announcer", ItemKind.BidWar)
         //{
@@ -159,7 +159,7 @@ public class UnrealTournament2004 : SimpleTCPPack
         //},
 
         new Effect("Full Adrenaline", "full_adrenaline") { Category = "Adrenaline & Combos", Price = 2, Description = "Max out all players adrenaline!" },
-        new Effect("Infinite Adrenaline", "infinite_adrenaline") { Category = "Adrenaline & Combos", Price = 10, Description = "All players have infinite adrenaline for a period of time!" },
+        new Effect("Infinite Adrenaline", "infinite_adrenaline") { Category = "Adrenaline & Combos", Price = 10, Description = "All players have infinite adrenaline for a period of time!", Duration=60 },
         new Effect("Ultra Adrenaline Powers for Last Place", "last_place_ultra_adrenaline") { Category = "Adrenaline & Combos", Price = 10, Description = "The player in last place gains all of the adrenaline powers at once!" },
         new Effect("Invisible Players", "all_invisible") { Category = "Adrenaline & Combos", Price = 5, Description = "All players become temporarily invisible!" },
         new Effect("Berserker!", "all_berserk") { Category = "Adrenaline & Combos", Price = 5, Description = "All players become berserk temporarily!" },
