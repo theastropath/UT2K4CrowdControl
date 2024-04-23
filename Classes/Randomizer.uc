@@ -40,7 +40,7 @@ function ShuffleItems(Actor a)
 
     foreach a.AllActors(class'xPickupBase', item) {
         if(item.Owner != None) continue;
-        if(item.bStatic){continue;} //Can't move static things
+        //if(item.bStatic){continue;} //Can't move static things
         if (xWeaponBase(item)!=None){
             if (!bShuffleWeapons){continue;}
             if (!bShuffleSupers && (xWeaponBase(item).WeaponType.Default.InventoryGroup==0)){continue;}
@@ -95,7 +95,11 @@ function ShuffleItems(Actor a)
         slot = Rand(num_pickups);
         if(slot != i)
             SwapActors(pickups[i], pickups[slot]);
-            pickups[i].AddToNavigation(); //Add them back to the navigation info (so that, I guess, NPCs recalculate their paths)
+    }
+
+    //All the pickups have been moved, add them back into the navigation info
+    for(i=0; i<num_pickups; i++) {
+        pickups[i].AddToNavigation(); //Add them back to the navigation info (so that, I guess, NPCs recalculate their paths)
     }
 
     if (bRandomWeaponLockers){
