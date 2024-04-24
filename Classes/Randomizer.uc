@@ -5,88 +5,100 @@ var config bool bShuffleSupers, bShuffleWeapons, bShuffleHealth, bShuffleAmmo, b
 
 function bool CheckReplacement( Actor Other, out byte bSuperRelevant )
 {
-    if (bShuffleWeaponsWithOthers && xWeaponBase(Other) != None ){
+    if (xPickupBase(Other) != None  && WildCardBase(Other)==None){
+        //log("Despawning "$Other);
+        Other.bHidden=True;
+        xPickupBase(Other).PowerUp=None;
+        if(xWeaponBase(Other)!=None){
+            xWeaponBase(Other).WeaponType=None;
+        }
         return false; //Just despawn them, we've already replaced them
+    } else if (Pickup(Other)!=None && Pickup(Other).PickUpBase==None){
+        //Remove, we should have already spawned a RandoBase for these
+        return false;
     }
 
     return True;
 }
 
-function ReplaceWeaponBases()
+function ReplaceBases()
 {
-    local xWeaponBase weapBase;
-    local RandoWeaponBase rwb;
+    local RandoBase rwb;
+    local xPickupBase pub;
 
-    foreach AllActors(class'xWeaponBase',weapBase){
-        rwb=Spawn(class'RandoWeaponBase',weapBase.Owner,weapBase.tag,weapBase.Location,weapBase.Rotation);
-        rwb.SetWeaponType(weapBase.WeaponType);
+    foreach AllActors(class'xPickupBase',pub){
+        if(RandoBase(pub)!=None){
+            continue; //don't replace the already replaced base
+        } else if (xWeaponBase(pub)!=None){
+            //log("replacing weapon base "$pub);
+            rwb=Spawn(class'RandoBase',pub.Owner,pub.tag,pub.Location,pub.Rotation);
+            rwb.myMarker = pub.myMarker;
+            rwb.SetWeaponType(xWeaponBase(pub).WeaponType);
+            rwb.DuplicateAppearance(pub);
+        } else if (WildCardBase(pub)!=None){
+            continue; //Skip WildcardBase for now
+        } else {
+            //log("Replacing pickup base "$pub);
+            rwb=Spawn(class'RandoBase',pub.Owner,pub.tag,pub.Location,pub.Rotation);
+            rwb.myMarker = pub.myMarker;
+            rwb.ReplacePickupBase(pub);
+            rwb.DuplicateAppearance(pub);
+        }
+    }
+}
+
+function CreateBasesForPickups()
+{
+    local Pickup p;
+    local RandoBase rb;
+
+    foreach AllActors(class'Pickup',p){
+        rb=Spawn(class'RandoBase',p.Owner,p.tag,p.Location,p.Rotation);
+        rb.MakeBaseForPickup(p);
     }
 }
 
 function InitRando()
 {
-    if (bShuffleWeaponsWithOthers){
-        ReplaceWeaponBases();
-    }
+    ReplaceBases();
+    CreateBasesForPickups();
     ShuffleItems(self);
 }
 
 function ShuffleItems(Actor a)
 {
-    local xPickupBase item, bases[128],weapons[128];
-    local Pickup pick,pickups[256];
+    local RandoBase item, bases[128],weapons[128];
     local WeaponLocker locker;
-    local int num_bases, num_weapons, num_pickups, i, slot;
+    local int num_bases, num_weapons, i, slot;
 
-    foreach a.AllActors(class'xPickupBase', item) {
+    foreach a.AllActors(class'RandoBase', item) {
         if(item.Owner != None) continue;
-        //if(item.bStatic){continue;} //Can't move static things
 
         if (bFullyRandomWeapons){
-            if (xWeaponBase(item)!=None){
-                xWeaponBase(item).WeaponType = PickRandomWeaponClass(bShuffleSupers);
-                xWeaponBase(item).bDelayedSpawn = (xWeaponBase(item).WeaponType.Default.InventoryGroup==0);
-            } else if (RandoWeaponBase(item)!=None){
-                RandoWeaponBase(item).SetWeaponType(PickRandomWeaponClass(bShuffleSupers));
+            if (item.isWeapon){
+                //log("Randomizing weapon type on base "$item);
+                item.SetWeaponType(PickRandomWeaponClass(bShuffleSupers));
             }
         }
 
-        if (xWeaponBase(item)!=None){
+        if (item.isWeapon && !bShuffleWeaponsWithOthers){
             if (!bShuffleWeapons){continue;}
-            if (!bShuffleSupers && (xWeaponBase(item).WeaponType.Default.InventoryGroup==0)){continue;}
-            if (bShuffleWeaponsWithOthers){continue;}
+            if (!bShuffleSupers && (item.isSuper)){continue;}
             weapons[num_weapons++] = item;
             //log("shuffling weapon base "$item);
-        } else if (WildcardBase(item)!=None){
-            continue; //Ignore these for now, until we come up with a better solution
         } else {
-            if(!bShuffleHealth){
-                if (HealthCharger(item)!=None){continue;}
-                if (ShieldCharger(item)!=None){continue;}
-                if (SuperHealthCharger(item)!=None){continue;}
-                if (SuperShieldCharger(item)!=None){continue;}
-            }
-            if (!bShuffleOther){
-                if (UDamageCharger(item)!=None){continue;}
-            }
-            if (RandoWeaponBase(item)!=None){
+            if(!bShuffleHealth && item.isHealth){continue;}
+            if(!bShuffleAmmo && item.isAmmo){continue;}
+            if(!bShuffleAdrenaline && item.isAdrenaline){continue;}
+            if(!bShuffleOther && !item.isHealth && !item.isAmmo && !item.isAdrenaline){continue;}
+
+            if (item.isWeapon){
                 if (!bShuffleWeapons) {continue;}
-                if (!bShuffleSupers && RandoWeaponBase(item).isSuper){continue;}
+                if (!bShuffleSupers && item.isSuper){continue;}
             }
             bases[num_bases++] = item;
             //log("shuffling pickup base "$item);
         }
-    }
-
-    foreach a.AllActors(class'Pickup',pick){
-        if (pick.Owner != None) continue;
-        if (pick.bStatic){continue;} //Can't move static things
-        if (!bShuffleAmmo && Ammo(pick)!=None){continue;}
-        if (!bShuffleAdrenaline && AdrenalinePickup(pick)!=None){continue;}
-        if (!bShuffleHealth && (TournamentHealth(pick)!=None || ShieldPickup(pick)!=None)){continue;}
-        pickups[num_pickups++] = pick;
-        //log("shuffling pickup "$pick);
-        pick.RemoveFromNavigation(); //Take them out of the navigation info (not *totally* sure what this means)
     }
 
     for(i=0; i<num_bases; i++) {
@@ -101,15 +113,12 @@ function ShuffleItems(Actor a)
             SwapPickupBases(weapons[i], weapons[slot]);
     }
 
-    for(i=0; i<num_pickups; i++) {
-        slot = Rand(num_pickups);
-        if(slot != i)
-            SwapActors(pickups[i], pickups[slot]);
+    //Make sure the replaced bases are initialized with their new pickups and weapons
+    for(i=0; i<num_bases; i++) {
+        bases[i].PostBeginPlay();
     }
-
-    //All the pickups have been moved, add them back into the navigation info
-    for(i=0; i<num_pickups; i++) {
-        pickups[i].AddToNavigation(); //Add them back to the navigation info (so that, I guess, NPCs recalculate their paths)
+    for(i=0; i<num_weapons; i++) {
+        weapons[i].PostBeginPlay();
     }
 
     if (bRandomWeaponLockers){
@@ -164,13 +173,13 @@ function class<Weapon> PickRandomWeaponClass(optional bool bAllowSupers)
     return None;
 }
 
-function SwapPickupBases(xPickupBase a, xPickupBase b)
+function SwapPickupBases(RandoBase a, RandoBase b)
 {
     local class<PickUp> powerUpA;
-    local class<Weapon> weaponTypeA;
     local float pathCostA,spawnHeightA;
     local bool delayedA;
-    local xWeaponBase wepA,wepB;
+
+    //log("Swapping "$a.PowerUp$" and "$b.PowerUp);
 
     powerUpA = a.PowerUp;
     a.PowerUp = b.PowerUp;
@@ -188,17 +197,6 @@ function SwapPickupBases(xPickupBase a, xPickupBase b)
     a.bDelayedSpawn = b.bDelayedSpawn;
     b.bDelayedSpawn = delayedA;
 
-    wepA=xWeaponBase(a);
-    wepB=xWeaponBase(b);
-
-    if (wepA!=None && wepB!=None){
-        weaponTypeA = wepA.WeaponType;
-        wepA.WeaponType = wepB.WeaponType;
-        wepB.WeaponType = weaponTypeA;
-
-        wepA.bDelayedSpawn = (wepA.WeaponType.Default.InventoryGroup==0);
-        wepB.bDelayedSpawn = (wepB.WeaponType.Default.InventoryGroup==0);
-    }
 }
 
 
