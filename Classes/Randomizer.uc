@@ -13,7 +13,7 @@ function bool CheckReplacement( Actor Other, out byte bSuperRelevant )
             xWeaponBase(Other).WeaponType=None;
         }
         return false; //Just despawn them, we've already replaced them
-    } else if (Pickup(Other)!=None && Pickup(Other).PickUpBase==None){
+    } else if (Pickup(Other)!=None && Pickup(Other).PickUpBase==None && WeaponLocker(Other)==None){
         //Remove, we should have already spawned a RandoBase for these
         return false;
     }
@@ -53,6 +53,7 @@ function CreateBasesForPickups()
     local RandoBase rb;
 
     foreach AllActors(class'Pickup',p){
+        if (WeaponLocker(p)!=None){continue;}
         rb=Spawn(class'RandoBase',p.Owner,p.tag,p.Location,p.Rotation);
         rb.MakeBaseForPickup(p);
     }
@@ -68,8 +69,21 @@ function InitRando()
 function ShuffleItems(Actor a)
 {
     local RandoBase item, bases[128],weapons[128];
+    local class<Pickup> ammos[128];
+    local class<Weapon> randWeapon;
     local WeaponLocker locker;
-    local int num_bases, num_weapons, i, slot;
+    local int num_bases, num_weapons, num_ammos, i, slot;
+
+
+    if (bRandomWeaponLockers){
+        foreach a.AllActors(class'WeaponLocker', locker) {
+            for (i=0;i<locker.Weapons.Length;i++){
+                locker.Weapons[i].WeaponClass=PickRandomWeaponClass(bSuperWeaponsInLockers);
+                ammos[num_ammos]=locker.Weapons[i].WeaponClass.default.FireModeClass[0].Default.AmmoClass.Default.PickupClass;
+                if (ammos[num_ammos]!=None){num_ammos++;}
+            }
+        }
+    }
 
     foreach a.AllActors(class'RandoBase', item) {
         if(item.Owner != None) continue;
@@ -77,7 +91,10 @@ function ShuffleItems(Actor a)
         if (bFullyRandomWeapons){
             if (item.isWeapon){
                 //log("Randomizing weapon type on base "$item);
-                item.SetWeaponType(PickRandomWeaponClass(bShuffleSupers));
+                randWeapon=PickRandomWeaponClass(bShuffleSupers);
+                item.SetWeaponType(randWeapon);
+                ammos[num_ammos]=randWeapon.default.FireModeClass[0].Default.AmmoClass.Default.PickupClass;
+                if (ammos[num_ammos]!=None){num_ammos++;}
             }
         }
 
@@ -101,6 +118,14 @@ function ShuffleItems(Actor a)
         }
     }
 
+    if (bFullyRandomWeapons){
+        foreach AllActors(class'RandoBase', item){
+            if (item.isAmmo){
+                item.PowerUp=ammos[Rand(num_ammos)];
+            }
+        }
+    }
+
     for(i=0; i<num_bases; i++) {
         slot = Rand(num_bases);
         if(slot != i)
@@ -120,53 +145,59 @@ function ShuffleItems(Actor a)
     for(i=0; i<num_weapons; i++) {
         weapons[i].PostBeginPlay();
     }
-
-    if (bRandomWeaponLockers){
-        foreach a.AllActors(class'WeaponLocker', locker) {
-            for (i=0;i<locker.Weapons.Length;i++){
-                locker.Weapons[i].WeaponClass=PickRandomWeaponClass(bSuperWeaponsInLockers);
-            }
-        }
-    }
-
 }
 
 function class<Weapon> PickRandomWeaponClass(optional bool bAllowSupers)
 {
     local int numWeaponTypes;
 
-    numWeaponTypes=10;
+    numWeaponTypes=24;
 
     if (bAllowSupers){
         numWeaponTypes+=2; //Redeemer and instagib rifle
     }
 
+    //Extra weighting to regular weapons
     switch(Rand(numWeaponTypes)){
         case 0:
-            return class'BioRifle';
         case 1:
-            return class'FlakCannon';
         case 2:
-            return class'LinkGun';
+            return class'BioRifle';
         case 3:
-            return class'Minigun';
         case 4:
-            return class'RocketLauncher';
         case 5:
-            return class'ShockRifle';
+            return class'FlakCannon';
         case 6:
-            return class'SniperRifle';
         case 7:
-            return class'ONSAVRiL';
         case 8:
-            return class'ONSGrenadeLauncher';
+            return class'LinkGun';
         case 9:
+        case 10:
+        case 11:
+            return class'Minigun';
+        case 12:
+        case 13:
+        case 14:
+            return class'RocketLauncher';
+        case 15:
+        case 16:
+        case 17:
+            return class'ShockRifle';
+        case 18:
+        case 19:
+        case 20:
+            return class'SniperRifle';
+        case 21:
+            return class'ONSAVRiL';
+        case 22:
+            return class'ONSGrenadeLauncher';
+        case 23:
             return class'ONSMineLayer';
         
         //Make sure super weapons are all at the end
-        case 10:
+        case 24:
             return class'Redeemer';
-        case 11:
+        case 25:
             return class'SuperShockRifle';
     }
 
@@ -177,7 +208,7 @@ function SwapPickupBases(RandoBase a, RandoBase b)
 {
     local class<PickUp> powerUpA;
     local float pathCostA,spawnHeightA;
-    local bool delayedA;
+    local bool delayedA, spareBool;
 
     //log("Swapping "$a.PowerUp$" and "$b.PowerUp);
 
@@ -196,6 +227,30 @@ function SwapPickupBases(RandoBase a, RandoBase b)
     delayedA = a.bDelayedSpawn;
     a.bDelayedSpawn = b.bDelayedSpawn;
     b.bDelayedSpawn = delayedA;
+
+    spareBool=a.isSuper;
+    a.isSuper=b.isSuper;
+    b.isSuper=spareBool;
+
+    spareBool=a.isWeapon;
+    a.isWeapon=b.isWeapon;
+    b.isWeapon=spareBool;
+
+    spareBool=a.isPickup;
+    a.isPickup=b.isPickup;
+    b.isPickup=spareBool;
+
+    spareBool=a.isHealth;
+    a.isHealth=b.isHealth;
+    b.isHealth=spareBool;
+
+    spareBool=a.isAmmo;
+    a.isAmmo=b.isAmmo;
+    b.isAmmo=spareBool;
+
+    spareBool=a.isAdrenaline;
+    a.isAdrenaline=b.isAdrenaline;
+    b.isAdrenaline=spareBool;
 
 }
 
