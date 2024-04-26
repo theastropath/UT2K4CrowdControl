@@ -89,6 +89,21 @@ simulated function DuplicateAppearance(xPickupBase pub)
     }
 }
 
+function byte GetInventoryGroup()
+{
+    local class<UTWeaponPickup> pickup;
+    local class<Weapon> WeaponType;
+
+    if (!isWeapon){return 0;}
+
+    pickup = class<UTWeaponPickup>(PowerUp);
+    if (pickup==None){return 0;}
+    WeaponType = class<Weapon>(pickup.default.InventoryType);
+    if (WeaponType != None)
+        return WeaponType.Default.InventoryGroup;
+    return 999;
+}
+
 defaultproperties
 {
      bStatic=False
