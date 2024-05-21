@@ -22,7 +22,46 @@ Want to try this out on the greater internet?  You'll probably want to connect t
 
 ## Campaign Mode
 
-At the moment, there is no support for using Crowd Control in the single player campaign.  However, you may have luck using this unrelated mod: [UT2004 LAN Co-op Tournament](https://www.moddb.com/games/unreal-tournament-2004/addons/ut2004-lan-tournament-beta-1)
+Campaign support for Crowd Control (including Simulated Crowd Control or the Randomizer, or all at once) is here!  Unfortunately this requires some additional setup beyond the normal installation and you **cannot** use an existing campaign save (in fact, you can't even load them at the moment).
+
+Locate your UT2004.ini file in the System directory and open it.
+
+Find the line that starts with "SinglePlayerMenuClass=" and change it to
+
+```
+SinglePlayerMenuClass=UT2k4CrowdControl.UT2K4SPMutator_Main
+```
+
+Next, find the line that starts with "GUIController=" and change it to
+
+```
+GUIController=UT2k4CrowdControl.UT2K4GUIControllerMutator
+```
+
+and you should be able to create a new save in the Single Player menu and start playing Crowd Control!
+
+If you want to revert to the normal single player campaign, you can change those lines back to:
+
+```
+SinglePlayerMenuClass=GUI2K4.UT2K4SP_Main
+GUIController=GUI2K4.UT2K4GUIController
+```
+
+## Adjusting Mutators Used in Campaign Mode
+
+Start a single player match (even just the very first tutorial is fine), then quit the game.  In your System directory you should find a file called **MutatorLadder.ini**.
+
+There should be a line that starts with "MutatorList=".  This line defines which mutators will be loaded in the single player campaign.  This is a simple comma-separated list and can include any mutator you have installed.  The names of the mutators in this package are:
+
+Crowd Control = UT2k4CrowdControl.CrowdControl
+Simulated Crowd Control = UT2k4CrowdControl.OfflineCrowdControl
+Randomizer = UT2k4CrowdControl.Randomizer
+
+If you wanted all three of those mutators running in the single player campaign, you could modify your MutatorList line in MutatorLadder.ini to look like this:
+
+```
+MutatorList=UT2k4CrowdControl.CrowdControl,UT2k4CrowdControl.OfflineCrowdControl,UT2k4CrowdControl.Randomizer
+```
 
 ## Feedback
   
