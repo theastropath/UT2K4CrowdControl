@@ -10,7 +10,7 @@ function UpdateTabs(optional bool bPurge, optional bool bSetActive)
     
     if (GP != none)
     {
-        tmp=addTab(8,true);
+        tmp=addTab(8,false);
         if (tmp!=None) tpMutators = UT2K4Tab_MutatorSPLadder(tmp);
     }
 }
