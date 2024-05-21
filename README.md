@@ -53,9 +53,11 @@ Start a single player match (even just the very first tutorial is fine), then qu
 
 There should be a line that starts with "MutatorList=".  This line defines which mutators will be loaded in the single player campaign.  This is a simple comma-separated list and can include any mutator you have installed.  The names of the mutators in this package are:
 
+```
 Crowd Control = UT2k4CrowdControl.CrowdControl
 Simulated Crowd Control = UT2k4CrowdControl.OfflineCrowdControl
 Randomizer = UT2k4CrowdControl.Randomizer
+```
 
 If you wanted all three of those mutators running in the single player campaign, you could modify your MutatorList line in MutatorLadder.ini to look like this:
 
