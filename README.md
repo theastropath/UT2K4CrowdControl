@@ -49,21 +49,7 @@ GUIController=GUI2K4.UT2K4GUIController
 
 ## Adjusting Mutators Used in Campaign Mode
 
-Start a single player match (even just the very first tutorial is fine), then quit the game.  In your System directory you should find a file called **MutatorLadder.ini**.
-
-There should be a line that starts with "MutatorList=".  This line defines which mutators will be loaded in the single player campaign.  This is a simple comma-separated list and can include any mutator you have installed.  The names of the mutators in this package are:
-
-```
-Crowd Control = UT2k4CrowdControl.CrowdControl
-Simulated Crowd Control = UT2k4CrowdControl.OfflineCrowdControl
-Randomizer = UT2k4CrowdControl.Randomizer
-```
-
-If you wanted all three of those mutators running in the single player campaign, you could modify your MutatorList line in MutatorLadder.ini to look like this:
-
-```
-MutatorList=UT2k4CrowdControl.CrowdControl,UT2k4CrowdControl.OfflineCrowdControl,UT2k4CrowdControl.Randomizer
-```
+After you have created a Single Player profile, go to the Mutators tab before starting a match.  Select the mutators you want to use (eg. Crowd Control, Simulated Crowd Control, or Randomizer), then start the match.  These mutators will be remembered for any subsequent games, but can be changed at any time between matches!
 
 ## Feedback
   
