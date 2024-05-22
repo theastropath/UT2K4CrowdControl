@@ -2568,6 +2568,11 @@ function int TeamBalance(string viewer)
         return TempFail;
     }
 
+    //Don't allow this effect in single player ladder matches - it screws things up too much
+    if (tg.CurrentGameProfile!=None && tg.CurrentGameProfile.bInLadderGame){
+        return TempFail;
+    }
+
     p = findPawnByScore(True,255); //Get Highest score player
 
     if (p == None || p.Controller==None || p.PlayerReplicationInfo==None) {
@@ -2807,11 +2812,19 @@ function EndOctoJump()
 ////                                  CROWD CONTROL EFFECT MAPPING                                       ////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+function ResetEffectSelectability()
+{
+    effectSelectInit=False;
+}
+
 function HandleEffectSelectability(UT2k4CrowdControlLink ccLink)
 {
     local bool adrenaline;
+    local bool ladderGame;
 
     if (effectSelectInit==False){
+        ladderGame = (Level.Game.CurrentGameProfile!=None && Level.Game.CurrentGameProfile.bInLadderGame);
+
         ccLink.sendEffectSelectability("full_fat",isLocal);
         ccLink.sendEffectSelectability("skin_and_bones",isLocal);
         ccLink.sendEffectSelectability("limbless",isLocal);
@@ -2819,7 +2832,7 @@ function HandleEffectSelectability(UT2k4CrowdControlLink ccLink)
         ccLink.sendEffectSelectability("announcer",isLocal);
         ccLink.sendEffectSelectability("reset_domination_control_points",xDoubleDom(Level.Game)!=None);
         ccLink.sendEffectSelectability("return_ctf_flags",CTFGame(Level.Game)!=None);
-        ccLink.sendEffectSelectability("team_balance",TeamGame(Level.Game)!=None);
+        ccLink.sendEffectSelectability("team_balance",TeamGame(Level.Game)!=None && !ladderGame);
         ccLink.sendEffectSelectability("heal_onslaught_cores",ONSOnslaughtGame(Level.Game)!=None);
         ccLink.sendEffectSelectability("reset_onslaught_links",ONSOnslaughtGame(Level.Game)!=None);
         ccLink.sendEffectSelectability("fumble_bombing_run_ball",xBombingRun(Level.Game)!=None);

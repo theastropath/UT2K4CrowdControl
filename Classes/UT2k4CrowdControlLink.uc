@@ -231,6 +231,7 @@ simulated function ManualReceiveBinary() {
 }
 event Opened(){
     Level.Game.Broadcast(self,"Crowd Control ("$version$") connection opened");
+    ccEffects.ResetEffectSelectability(); //Allow selectability to be recalculated
 }
 
 event Closed(){
