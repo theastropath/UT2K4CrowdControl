@@ -5,9 +5,12 @@ var UT2K4Tab_MutatorSPLadder tpMutators;
 function UpdateTabs(optional bool bPurge, optional bool bSetActive)
 {
     local GUITabPanel tmp;
-    
+
     Super.UpdateTabs(bPurge,bSetActive);
-    
+    if ((GP == none) || (bPurge))
+    {
+        removeTab(tpMutators);
+    }
     if (GP != none)
     {
         tmp=addTab(8,false);
