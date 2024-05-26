@@ -739,7 +739,6 @@ function RemoveAllAmmoFromPawn(Pawn p)
 {
     local Inventory Inv;
     for( Inv=p.Inventory; Inv!=None; Inv=Inv.Inventory ) {
-        PlayerController(p.Controller).ClientMessage("Inventory "$Inv);
         if ( Ammunition(Inv) != None ) {
             Ammunition(Inv).AmmoAmount = 0;
         } else if (Weapon(Inv)!=None){
