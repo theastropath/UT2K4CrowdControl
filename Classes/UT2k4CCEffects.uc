@@ -123,6 +123,10 @@ var int hotPotatoTimer;
 const HotPotatoTimerDefault = 60;
 const HotPotatoMaxTime = 5;
 
+var int tauntTimer;
+const TauntTimerDefault = 60;
+var name curTaunt;
+
 var int cfgMinPlayers;
 
 var bool bFat,bFast;
@@ -134,7 +138,7 @@ var bool effectSelectInit;
 replication
 {
     reliable if ( Role == ROLE_Authority )
-        behindTimer,speedTimer,meleeTimer,iceTimer,vampireTimer,floodTimer,forceWeaponTimer,bFat,bFast,forcedWeapon,numAddedBots,targetPlayer,GetEffectList,bodyEffectTimer,bodyEffect,gravityTimer,setLimblessScale,SetAllBoneScale,ModifyPlayer,SetPawnBoneScale,SetAllPlayerAnnouncerVoice,fogTimer,bounceTimer,hotPotatoTimer,teamDamageTimer,teamDamageHoldingTeam,headShotTimer,thornsTimer,octoJumpTimer;
+        behindTimer,speedTimer,meleeTimer,iceTimer,vampireTimer,floodTimer,forceWeaponTimer,bFat,bFast,forcedWeapon,numAddedBots,targetPlayer,GetEffectList,bodyEffectTimer,bodyEffect,gravityTimer,setLimblessScale,SetAllBoneScale,ModifyPlayer,SetPawnBoneScale,SetAllPlayerAnnouncerVoice,fogTimer,tauntTimer,hotPotatoTimer,teamDamageTimer,teamDamageHoldingTeam,headShotTimer,thornsTimer,octoJumpTimer;
 }
 
 function Init(Mutator baseMut)
@@ -307,6 +311,10 @@ simulated function GetEffectList(out string effects[20], out int numEffects)
         effects[i]="Added Bots: "$numAddedBots;
         i++;
     }
+    if (tauntTimer > 0) {
+        effects[i]="Taunting: "$tauntTimer;
+        i++;
+    }
 
     numEffects=i;
 }
@@ -359,6 +367,14 @@ function PeriodicUpdates()
             StopCrowdControlEvent("bouncy_castle",true);
         } else if ((bounceTimer % 2) == 0){
             BounceAllPlayers();
+        }
+    } 
+    if (tauntTimer > 0) {
+        tauntTimer--;
+        if (tauntTimer <= 0) {
+            StopCrowdControlEvent("thrust",true);
+        } else if ((tauntTimer % 2) == 0){
+            PlayTaunt(curTaunt);
         }
     } 
     if (hotPotatoTimer > 0) {
@@ -2527,15 +2543,45 @@ function int StartBounce(string viewer, int duration)
 }
 
 
-function int PlayTaunt(string viewer, optional name tauntSeq)
+function int PlayTauntEffect(string viewer, int duration, optional name tauntSeq)
+{
+    local bool found;
+
+    found=False;
+
+    if (tauntTimer>0) {
+        return TempFail;
+    }
+
+    found = PlayTaunt(tauntSeq);
+
+    if (!found){
+        return TempFail;
+    }
+
+    if (duration==0){
+        duration = TauntTimerDefault;
+    }
+    tauntTimer = duration;
+    curTaunt = tauntSeq;
+
+    Broadcast(viewer@"made everyone wiggle!");
+
+    return Success;
+}
+
+function bool PlayTaunt(optional name tauntSeq)
 {
     local UnrealPlayer p;
+    local Bot b;
     local bool found;
+    local name tauntName;
 
     found=False;
 
     foreach AllActors(class'UnrealPlayer',p){
         if (p.Pawn==None){continue;}
+        log("Playing taunt "$tauntSeq$" on player "$p.Pawn.Name);
 
         if (tauntSeq!=''){
             p.Taunt(tauntSeq);
@@ -2545,14 +2591,50 @@ function int PlayTaunt(string viewer, optional name tauntSeq)
         found=True;
     }
 
-    if (!found){
-        return TempFail;
+    foreach AllActors(class'Bot',b){
+        if (b.Pawn==None){
+            log("Skipping bot "$b.Name$" because it has no pawn");
+            continue;
+        }
+
+        tauntName='';
+        if (tauntSeq!=''){
+            tauntName=tauntSeq;
+        } else {
+            tauntName=RandomBotTaunt(b);
+        }
+
+        if (!b.Pawn.FindValidTaunt(tauntName) && tauntSeq!=''){
+            //If the specified taunt isn't valid for that pawn, let them do something else instead
+            tauntName=RandomBotTaunt(b);
+            log("Picking random taunt for "$b.Pawn.Name$" instead of the specified one because it wasn't valid");
+        }
+
+        if (tauntName!='' && b.Pawn.FindValidTaunt(tauntName)){
+            b.Pawn.SetAnimAction(tauntName);
+            found=True;
+            log("Playing taunt "$tauntName$" on bot "$b.Pawn.Name);
+        } else {
+            log("Skipping bot "$b.Pawn.Name$" because it didn't find a valid taunt");
+        }
     }
 
-    Broadcast(viewer@"made everyone wiggle!");
-
-    return Success;
+    return found;
 }
+
+function name RandomBotTaunt(Bot b)
+{
+	local int tauntNum;
+
+	if(b.Pawn == None)
+		return '';
+
+	// First 4 taunts are 'order' anims. Don't pick them.
+	tauntNum = Rand(b.Pawn.TauntAnims.Length - 4);
+	return b.Pawn.TauntAnims[4 + tauntNum];
+}
+
+
 
 function int TeamBalance(string viewer)
 {
@@ -2895,6 +2977,7 @@ function StopAllCrowdControlEvents()
     StopCrowdControlEvent("thorns");
     StopCrowdControlEvent("octojump");
     StopCrowdControlEvent("pint_sized");
+    StopCrowdControlEvent("thrust");
 }
 
 function int StopCrowdControlEvent(string code, optional bool bKnownStop)
@@ -2991,6 +3074,13 @@ function int StopCrowdControlEvent(string code, optional bool bKnownStop)
             if (bKnownStop || bounceTimer > 0){
                 Broadcast("The bouncy castle disappeared...");
                 bounceTimer=0;
+            }
+            break;
+        case "thrust":
+            if (bKnownStop || tauntTimer > 0){
+                Broadcast("The time for taunting has ended...");
+                tauntTimer=0;
+                curTaunt='';
             }
             break;
         case "bombing_run_hot_potato":
@@ -3145,7 +3235,7 @@ simulated function int doCrowdControlEvent(string code, string param[5], string 
         case "all_regen":
             return AllPlayersRegen(viewer);
         case "thrust":
-            return PlayTaunt(viewer,'PThrust'); //Not super happy with this - needs more tweaking
+            return PlayTauntEffect(viewer,duration,'PThrust');
         case "team_balance":
             return TeamBalance(viewer);
         case "announcer":

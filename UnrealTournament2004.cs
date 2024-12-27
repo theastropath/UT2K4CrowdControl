@@ -82,7 +82,7 @@ public class UnrealTournament2004 : SimpleTCPPack
         new Effect("Attacking Team Double Damage", "attack_team_double_dmg"){Category = "Game Mode Specific Effects", Price = 5, Description = "In Bombing Run or Assault Mode, the attacking team deals double damage!", Duration=60 },
         new Effect("Defending Team Double Damage", "defend_team_double_dmg"){Category = "Game Mode Specific Effects", Price = 5, Description = "In Bombing Run or Assault Mode, the defending team deals double damage!", Duration=60 },
         new Effect("Head Shots Only", "head_shots_only"){Category = "Weapons & Damage", Price = 10, Description = "Only shots to the head actually do damage!", Duration=60 },
-        new Effect("Wiggle Time", "thrust"){Price = 1, Description = "Everyone gets wiggly!"},
+        new Effect("Wiggle Time", "thrust"){Price = 1, Description = "Everyone gets wiggly!", Duration=60 },
         new Effect("Switch First Place Player Team", "team_balance"){Category = "Game Mode Specific Effects", Price = 5, Description = "The player in first place switches to the other team!"},
         new Effect("Bouncy Castle", "bouncy_castle"){Price = 5, Description = "Everyone gets periodically bounced up into the air!"},
         new Effect("Silent Hill Mode", "silent_hill"){Price = 10, Description = "The whole level becomes as foggy as Silent Hill!"},
