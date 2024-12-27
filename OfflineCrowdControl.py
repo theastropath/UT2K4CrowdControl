@@ -122,6 +122,8 @@ def pickEffect():
     effects.append(("announcer",[randomAnnouncer()]))
     effects.append(("heal_onslaught_cores",None))
     effects.append(("reset_onslaught_links",None))
+    effects.append(("winner_half_dmg",None))
+    effects.append(("red_light_green_light",None))
 
     return random.choice(effects)
 

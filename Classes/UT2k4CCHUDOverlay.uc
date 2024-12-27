@@ -8,7 +8,7 @@ simulated function Render(Canvas C)
     local int effectNum;
     local int baseYPos;
     local float FontDX, FontDY;
-    local string effects[20];
+    local string effects[30];
     local int numEffects;
     local color colorBefore;
 

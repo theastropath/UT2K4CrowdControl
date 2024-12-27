@@ -130,6 +130,14 @@ var int tauntTimer;
 const TauntTimerDefault = 60;
 var name curTaunt;
 
+var int redLightTimer;
+var int indLightTime;
+const RedLightTimerDefault = 60;
+const LightMinimumTime = 5;
+const RedLightMaxTime = 10;
+const GreenLightMaxTime = 25;
+var bool greenLight;
+
 var int cfgMinPlayers;
 
 var bool bFat,bFast;
@@ -141,7 +149,7 @@ var bool effectSelectInit;
 replication
 {
     reliable if ( Role == ROLE_Authority )
-        behindTimer,speedTimer,meleeTimer,iceTimer,vampireTimer,floodTimer,forceWeaponTimer,bFat,bFast,forcedWeapon,numAddedBots,targetPlayer,GetEffectList,bodyEffectTimer,bodyEffect,gravityTimer,setLimblessScale,SetAllBoneScale,ModifyPlayer,SetPawnBoneScale,SetAllPlayerAnnouncerVoice,fogTimer,tauntTimer,hotPotatoTimer,teamDamageTimer,teamDamageHoldingTeam,headShotTimer,thornsTimer,winHalfDmgTimer,octoJumpTimer;
+        behindTimer,speedTimer,meleeTimer,iceTimer,vampireTimer,floodTimer,forceWeaponTimer,bFat,bFast,forcedWeapon,numAddedBots,targetPlayer,GetEffectList,bodyEffectTimer,bodyEffect,gravityTimer,setLimblessScale,SetAllBoneScale,ModifyPlayer,SetPawnBoneScale,SetAllPlayerAnnouncerVoice,fogTimer,tauntTimer,hotPotatoTimer,teamDamageTimer,teamDamageHoldingTeam,headShotTimer,thornsTimer,winHalfDmgTimer,redLightTimer,greenLight,indLightTime,octoJumpTimer;
 }
 
 function Init(Mutator baseMut)
@@ -197,7 +205,7 @@ function Broadcast(string msg)
 }
 
 
-simulated function GetEffectList(out string effects[20], out int numEffects)
+simulated function GetEffectList(out string effects[30], out int numEffects)
 {
     local int i;
     local int hotPotatoRemaining;
@@ -322,6 +330,15 @@ simulated function GetEffectList(out string effects[20], out int numEffects)
         effects[i]="Winner Half Damage: "$winHalfDmgTimer;
         i++;
     }
+    if (redLightTimer > 0) {
+        effects[i]="Red Light, Green Light: "$redLightTimer;
+        if (greenLight){
+            effects[i]=effects[i] $ " (GREEN!)";
+        } else {
+            effects[i]=effects[i] $ " (RED!)";
+        }
+        i++;
+    }
 
     numEffects=i;
 }
@@ -329,6 +346,8 @@ simulated function GetEffectList(out string effects[20], out int numEffects)
 //One Second timer updates
 function PeriodicUpdates()
 {
+    local bool change;
+
     if (behindTimer > 0) {
         behindTimer--;
         if (behindTimer <= 0) {
@@ -457,6 +476,38 @@ function PeriodicUpdates()
         }
     }
 
+    if (redLightTimer > 0) {
+        redLightTimer--;
+        indLightTime++;
+        if (redLightTimer <= 0) {
+            StopCrowdControlEvent("red_light_green_light",true);
+        } else {
+            if (indLightTime>LightMinimumTime){
+                change=false;
+
+                if (greenLight && indLightTime>GreenLightMaxTime) {
+                    change = true;
+                }
+                if (!greenLight && indLightTime>RedLightMaxTime) {
+                    change = true;
+                }
+                if (Rand(10)==0) { //10% chance
+                    change = true;
+                }
+
+                if (change){ 
+                    indLightTime=0;
+                    greenLight=!greenLight; //Toggle light
+                    if (greenLight){
+                        Broadcast("GREEN LIGHT!");
+                    } else {
+                        Broadcast("RED LIGHT!");
+                    }
+                }
+            }
+        }
+    }  
+
     
 
 }
@@ -485,8 +536,40 @@ function ContinuousUpdates()
             game.MinPlayers = Max(cfgMinPlayers+numAddedBots, game.NumPlayers + numAddedBots);
         }
     }
+
+    if (redLightTimer > 0 && greenLight==false) {
+        CheckRedLightMovement();
+    }
 }
 
+function CheckRedLightMovement()
+{
+    local Pawn p;
+    local TeamGame tg;
+    local bool prevScoreTeamKills;
+
+    tg = TeamGame(Level.Game);
+    if (tg!=None){
+        prevScoreTeamKills=tg.bScoreTeamKills;
+        tg.bScoreTeamKills=false;
+    }
+
+    foreach AllActors(class'Pawn',p){
+        if (VSize(p.Velocity)>10){
+            p.TakeDamage
+            (
+                10000,
+                p,
+                p.Location,
+                Vect(0,0,0),
+                class'RedLight'
+            );
+        }
+    }
+    if (tg!=None){
+        tg.bScoreTeamKills=prevScoreTeamKills;
+    }
+}
 
 
 //Called every time there is a kill
@@ -2390,6 +2473,28 @@ function int StartWinnerHalfDamageMode(string viewer, int duration)
     return Success;
 }
 
+function int StartRedLightGreenLight(string viewer, int duration)
+{
+    if (bounceTimer>0) {
+        return TempFail;
+    }
+    if (redLightTimer>0) {
+        return TempFail;
+    }
+
+    Broadcast(viewer@"started 'Red Light, Green Light'!");
+
+    if (duration==0){
+        duration = RedLightTimerDefault;
+    }
+
+    redLightTimer = duration;
+    indLightTime=0;
+    greenLight=True;
+
+    return Success;
+}
+
 function int ForceWeaponUse(String viewer, String weaponName, int duration)
 {
     local class<Weapon> weaponClass;
@@ -2573,6 +2678,9 @@ function int StartFog(string viewer, int duration)
 
 function int StartBounce(string viewer, int duration)
 {
+    if (redLightTimer>0) {
+        return TempFail;
+    }
     if (bounceTimer>0) {
         return TempFail;
     }
@@ -3023,6 +3131,7 @@ function StopAllCrowdControlEvents()
     StopCrowdControlEvent("pint_sized");
     StopCrowdControlEvent("thrust");
     StopCrowdControlEvent("winner_half_dmg");
+    StopCrowdControlEvent("red_light_green_light");
 }
 
 function int StopCrowdControlEvent(string code, optional bool bKnownStop)
@@ -3178,6 +3287,14 @@ function int StopCrowdControlEvent(string code, optional bool bKnownStop)
                 winHalfDmgTimer=0;
             }
             break;
+        case "red_light_green_light":
+            if (bKnownStop || redLightTimer > 0){
+                Broadcast("'Red Light, Green Light' is over!");
+                redLightTimer=0;
+                indLightTime=0;
+            }
+            break;
+            
     }
     return Success;
 }
@@ -3320,6 +3437,8 @@ simulated function int doCrowdControlEvent(string code, string param[5], string 
             return StartPintSized(viewer,duration);
         case "winner_half_dmg":
             return StartWinnerHalfDamageMode(viewer,duration);
+        case "red_light_green_light":
+            return StartRedLightGreenLight(viewer,duration);
         default:
             Broadcast("Got Crowd Control Effect -   code: "$code$"   viewer: "$viewer );
             break;
