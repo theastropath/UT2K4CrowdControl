@@ -87,6 +87,7 @@ public class UnrealTournament2004 : SimpleTCPPack
         new Effect("Bouncy Castle", "bouncy_castle"){Price = 5, Description = "Everyone gets periodically bounced up into the air!"},
         new Effect("Silent Hill Mode", "silent_hill"){Price = 10, Description = "The whole level becomes as foggy as Silent Hill!"},
         new Effect("Octojump", "octojump"){Price = 2, Description = "Everyone can jump in the air 8 times!", Duration=60 },
+        new Effect("Winner Deals Half Damage", "winner_half_dmg"){Price = 3, Description = "The player or team in first place only deals half damage!", Duration=60},
         new Effect("Select Announcer Voice", "announcer")
         {
             Parameters = announcerList,

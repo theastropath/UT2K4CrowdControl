@@ -38,6 +38,9 @@ const HeadShotTimerDefault = 60;
 var int thornsTimer;
 const ThornsTimerDefault = 60;
 
+var int winHalfDmgTimer;
+const WinHalfDmgTimerDefault = 60;
+
 var int octoJumpTimer;
 const OctoJumpTimerDefault = 60;
 var int origNumJumps;
@@ -138,7 +141,7 @@ var bool effectSelectInit;
 replication
 {
     reliable if ( Role == ROLE_Authority )
-        behindTimer,speedTimer,meleeTimer,iceTimer,vampireTimer,floodTimer,forceWeaponTimer,bFat,bFast,forcedWeapon,numAddedBots,targetPlayer,GetEffectList,bodyEffectTimer,bodyEffect,gravityTimer,setLimblessScale,SetAllBoneScale,ModifyPlayer,SetPawnBoneScale,SetAllPlayerAnnouncerVoice,fogTimer,tauntTimer,hotPotatoTimer,teamDamageTimer,teamDamageHoldingTeam,headShotTimer,thornsTimer,octoJumpTimer;
+        behindTimer,speedTimer,meleeTimer,iceTimer,vampireTimer,floodTimer,forceWeaponTimer,bFat,bFast,forcedWeapon,numAddedBots,targetPlayer,GetEffectList,bodyEffectTimer,bodyEffect,gravityTimer,setLimblessScale,SetAllBoneScale,ModifyPlayer,SetPawnBoneScale,SetAllPlayerAnnouncerVoice,fogTimer,tauntTimer,hotPotatoTimer,teamDamageTimer,teamDamageHoldingTeam,headShotTimer,thornsTimer,winHalfDmgTimer,octoJumpTimer;
 }
 
 function Init(Mutator baseMut)
@@ -315,6 +318,10 @@ simulated function GetEffectList(out string effects[20], out int numEffects)
         effects[i]="Taunting: "$tauntTimer;
         i++;
     }
+    if (winHalfDmgTimer > 0) {
+        effects[i]="Winner Half Damage: "$winHalfDmgTimer;
+        i++;
+    }
 
     numEffects=i;
 }
@@ -407,6 +414,12 @@ function PeriodicUpdates()
         thornsTimer--;
         if (thornsTimer <= 0) {
             StopCrowdControlEvent("thorns",true);
+        }
+    }  
+    if (winHalfDmgTimer > 0) {
+        winHalfDmgTimer--;
+        if (winHalfDmgTimer <= 0) {
+            StopCrowdControlEvent("winner_half_dmg",true);
         }
     }  
     if (forceWeaponTimer > 0) {
@@ -2250,6 +2263,9 @@ function int StartTeamDamageMode(string viewer, int duration, bool holdingTeam)
     if (thornsTimer>0){
         return TempFail;
     }
+    if (winHalfDmgTimer>0){
+        return TempFail;
+    }
     if (xBombingRun(Level.Game)==None && ASGameInfo(Level.Game)==None){
         return TempFail;
     }
@@ -2343,6 +2359,33 @@ function int StartThornsMode(string viewer, int duration)
         duration = ThornsTimerDefault;
     }
     thornsTimer = duration;
+    return Success;
+}
+
+function int StartWinnerHalfDamageMode(string viewer, int duration)
+{
+    if (teamDamageTimer>0) {
+        return TempFail;
+    }
+    if (winHalfDmgTimer>0){
+        return TempFail;
+    }
+    //Check if game rule is already in place, fail if it is
+    if (IsGameRuleActive(class'WinningHalfDamageRules')){
+        return TempFail;
+    }
+
+    //Attempt to add the game rules, fail if it doesn't for some reason
+    if (!AddNewGameRule(class'WinningHalfDamageRules')){
+        return TempFail;
+    }
+
+    Broadcast(viewer@"made the winner do half damage!");
+    if (duration==0){
+        duration = WinHalfDmgTimerDefault;
+    }
+
+    winHalfDmgTimer = duration;
     return Success;
 }
 
@@ -2978,6 +3021,7 @@ function StopAllCrowdControlEvents()
     StopCrowdControlEvent("octojump");
     StopCrowdControlEvent("pint_sized");
     StopCrowdControlEvent("thrust");
+    StopCrowdControlEvent("winner_half_dmg");
 }
 
 function int StopCrowdControlEvent(string code, optional bool bKnownStop)
@@ -3125,7 +3169,13 @@ function int StopCrowdControlEvent(string code, optional bool bKnownStop)
                 octoJumpTimer=0;
             }
             break;
-        
+        case "winner_half_dmg":
+            if (bKnownStop || winHalfDmgTimer > 0){
+                RemoveGameRule(class'WinningHalfDamageRules');
+                Broadcast("The winner can do full damage again...");
+                winHalfDmgTimer=0;
+            }
+            break;
     }
     return Success;
 }
@@ -3266,6 +3316,8 @@ simulated function int doCrowdControlEvent(string code, string param[5], string 
             return StartOctoJump(viewer,duration);
         case "pint_sized":
             return StartPintSized(viewer,duration);
+        case "winner_half_dmg":
+            return StartWinnerHalfDamageMode(viewer,duration);
         default:
             Broadcast("Got Crowd Control Effect -   code: "$code$"   viewer: "$viewer );
             break;
