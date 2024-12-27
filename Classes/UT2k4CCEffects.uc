@@ -132,10 +132,11 @@ var name curTaunt;
 
 var int redLightTimer;
 var int indLightTime;
+var bool redLightGrace;
 const RedLightTimerDefault = 60;
-const LightMinimumTime = 5;
-const RedLightMaxTime = 10;
-const GreenLightMaxTime = 25;
+const LightMinimumTime = 3;
+const RedLightMaxTime = 7;
+const GreenLightMaxTime = 20;
 var bool greenLight;
 
 var int cfgMinPlayers;
@@ -492,6 +493,7 @@ function PeriodicUpdates()
     if (redLightTimer > 0) {
         redLightTimer--;
         indLightTime++;
+        redLightGrace=false;
         if (redLightTimer <= 0) {
             StopCrowdControlEvent("red_light_green_light",true);
         } else {
@@ -514,6 +516,7 @@ function PeriodicUpdates()
                     if (greenLight){
                         Broadcast(GenerateRGBTextCode(0,255,0)$"GREEN LIGHT!");
                     } else {
+                        redLightGrace=true;
                         Broadcast(GenerateRGBTextCode(255,0,0)$"RED LIGHT!");
                     }
                 }
@@ -550,7 +553,7 @@ function ContinuousUpdates()
         }
     }
 
-    if (redLightTimer > 0 && greenLight==false) {
+    if (redLightTimer > 0 && greenLight==false && redLightGrace==false) {
         CheckRedLightMovement();
     }
 }
