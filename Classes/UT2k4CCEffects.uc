@@ -1962,6 +1962,7 @@ function int FirstPlaceSlow(String viewer, int duration)
         duration = SingleSlowTimerDefault;
     }
     speedTimer = duration;
+    bFast=False;
     targetPlayer=p.Controller.GetHumanReadableName();
 
     Broadcast(viewer$" made "$p.Controller.GetHumanReadableName()$" slow as punishment for being in first place!");
@@ -3041,6 +3042,7 @@ function int StopCrowdControlEvent(string code, optional bool bKnownStop)
                 SetAllPlayersGroundSpeed(class'Pawn'.Default.GroundSpeed);
                 Broadcast("Returning to normal move speed...");
                 speedTimer=0;
+                targetPlayer="";
             }
             break;
         case "ice_physics":
