@@ -204,6 +204,18 @@ function Broadcast(string msg)
     SendCCMessage(msg);
 }
 
+function string GenerateRGBTextCode(int r, int g, int b)
+{
+    if (r<=0) r=1;
+    if (g<=0) g=1;
+    if (b<=0) b=1;
+
+    if (r>255) r=255;
+    if (g>255) g=255;
+    if (b>255) b=255;
+
+    return chr(27)$chr(r)$chr(g)$chr(b);
+}
 
 simulated function GetEffectList(out string effects[30], out int numEffects)
 {
@@ -333,10 +345,11 @@ simulated function GetEffectList(out string effects[30], out int numEffects)
     if (redLightTimer > 0) {
         effects[i]="Red Light, Green Light: "$redLightTimer;
         if (greenLight){
-            effects[i]=effects[i] $ " (GREEN!)";
+            effects[i]=effects[i] $ GenerateRGBTextCode(0,255,0) $" (GREEN!)";
         } else {
-            effects[i]=effects[i] $ " (RED!)";
+            effects[i]=effects[i] $ GenerateRGBTextCode(255,0,0) $ " (RED!)";
         }
+        effects[i]=effects[i] $ GenerateRGBTextCode(255,255,255);
         i++;
     }
 
@@ -499,9 +512,9 @@ function PeriodicUpdates()
                     indLightTime=0;
                     greenLight=!greenLight; //Toggle light
                     if (greenLight){
-                        Broadcast("GREEN LIGHT!");
+                        Broadcast(GenerateRGBTextCode(0,255,0)$"GREEN LIGHT!");
                     } else {
-                        Broadcast("RED LIGHT!");
+                        Broadcast(GenerateRGBTextCode(255,0,0)$"RED LIGHT!");
                     }
                 }
             }
