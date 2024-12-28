@@ -142,6 +142,9 @@ const RedLightMaxTime = 7;
 const GreenLightMaxTime = 20;
 var bool greenLight;
 
+var int blurTimer;
+const BlurTimerDefault = 60;
+
 var int cfgMinPlayers;
 
 var bool bFat,bFast;
@@ -2531,11 +2534,14 @@ function int StartRedLightGreenLight(string viewer, int duration)
     if (bounceTimer>0) {
         return TempFail;
     }
+    if (iceTimer>0) {
+        return TempFail;
+    }
     if (redLightTimer>0) {
         return TempFail;
     }
 
-    Broadcast(viewer@"started 'Red Light, Green Light'!");
+    Broadcast(viewer@"wants to play 'Red Light, Green Light'!");
 
     if (duration==0){
         duration = RedLightTimerDefault;
@@ -2669,6 +2675,10 @@ function int EnableIcePhysics(string viewer, int duration)
     }
 
     if (floodTimer>0) {
+        return TempFail;
+    }
+
+    if (redLightTimer>0) {
         return TempFail;
     }
     
