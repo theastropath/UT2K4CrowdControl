@@ -41,6 +41,9 @@ const ThornsTimerDefault = 60;
 var int winHalfDmgTimer;
 const WinHalfDmgTimerDefault = 60;
 
+var int momentumTimer;
+const MomentumTimerDefault = 60;
+
 var int octoJumpTimer;
 const OctoJumpTimerDefault = 60;
 var int origNumJumps;
@@ -150,7 +153,7 @@ var bool effectSelectInit;
 replication
 {
     reliable if ( Role == ROLE_Authority )
-        behindTimer,speedTimer,meleeTimer,iceTimer,vampireTimer,floodTimer,forceWeaponTimer,bFat,bFast,forcedWeapon,numAddedBots,targetPlayer,GetEffectList,bodyEffectTimer,bodyEffect,gravityTimer,setLimblessScale,SetAllBoneScale,ModifyPlayer,SetPawnBoneScale,SetAllPlayerAnnouncerVoice,fogTimer,tauntTimer,hotPotatoTimer,teamDamageTimer,teamDamageHoldingTeam,headShotTimer,thornsTimer,winHalfDmgTimer,redLightTimer,greenLight,indLightTime,octoJumpTimer;
+        behindTimer,speedTimer,meleeTimer,iceTimer,vampireTimer,floodTimer,forceWeaponTimer,bFat,bFast,forcedWeapon,numAddedBots,targetPlayer,GetEffectList,bodyEffectTimer,bodyEffect,gravityTimer,setLimblessScale,SetAllBoneScale,ModifyPlayer,SetPawnBoneScale,SetAllPlayerAnnouncerVoice,fogTimer,tauntTimer,hotPotatoTimer,teamDamageTimer,teamDamageHoldingTeam,headShotTimer,thornsTimer,winHalfDmgTimer,momentumTimer,redLightTimer,greenLight,indLightTime,octoJumpTimer;
 }
 
 function Init(Mutator baseMut)
@@ -353,6 +356,10 @@ simulated function GetEffectList(out string effects[30], out int numEffects)
         effects[i]=effects[i] $ GenerateRGBTextCode(255,255,255);
         i++;
     }
+    if (momentumTimer > 0) {
+        effects[i]="Massive Momentum: "$momentumTimer;
+        i++;
+    }
 
     numEffects=i;
 }
@@ -453,6 +460,12 @@ function PeriodicUpdates()
         winHalfDmgTimer--;
         if (winHalfDmgTimer <= 0) {
             StopCrowdControlEvent("winner_half_dmg",true);
+        }
+    }  
+    if (momentumTimer > 0) {
+        momentumTimer--;
+        if (momentumTimer <= 0) {
+            StopCrowdControlEvent("massive_momentum",true);
         }
     }  
     if (forceWeaponTimer > 0) {
@@ -2489,6 +2502,30 @@ function int StartWinnerHalfDamageMode(string viewer, int duration)
     return Success;
 }
 
+function int StartMassiveMomentum(string viewer, int duration)
+{
+    if (momentumTimer>0){
+        return TempFail;
+    }
+    //Check if game rule is already in place, fail if it is
+    if (IsGameRuleActive(class'MassiveMomentumRules')){
+        return TempFail;
+    }
+
+    //Attempt to add the game rules, fail if it doesn't for some reason
+    if (!AddNewGameRule(class'MassiveMomentumRules')){
+        return TempFail;
+    }
+
+    Broadcast(viewer@"made all damage impart massive momentum!");
+    if (duration==0){
+        duration = MomentumTimerDefault;
+    }
+
+    momentumTimer = duration;
+    return Success;
+}
+
 function int StartRedLightGreenLight(string viewer, int duration)
 {
     if (bounceTimer>0) {
@@ -3148,6 +3185,7 @@ function StopAllCrowdControlEvents()
     StopCrowdControlEvent("thrust");
     StopCrowdControlEvent("winner_half_dmg");
     StopCrowdControlEvent("red_light_green_light");
+    StopCrowdControlEvent("massive_momentum");
 }
 
 function int StopCrowdControlEvent(string code, optional bool bKnownStop)
@@ -3310,6 +3348,13 @@ function int StopCrowdControlEvent(string code, optional bool bKnownStop)
                 indLightTime=0;
             }
             break;
+        case "massive_momentum":
+            if (bKnownStop || momentumTimer > 0){
+                RemoveGameRule(class'MassiveMomentumRules');
+                Broadcast("Damage imparts normal momentum again...");
+                momentumTimer=0;
+            }
+            break;
             
     }
     return Success;
@@ -3455,6 +3500,8 @@ simulated function int doCrowdControlEvent(string code, string param[5], string 
             return StartWinnerHalfDamageMode(viewer,duration);
         case "red_light_green_light":
             return StartRedLightGreenLight(viewer,duration);
+        case "massive_momentum":
+            return StartMassiveMomentum(viewer,duration);
         default:
             Broadcast("Got Crowd Control Effect -   code: "$code$"   viewer: "$viewer );
             break;

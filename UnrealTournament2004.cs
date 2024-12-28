@@ -89,6 +89,7 @@ public class UnrealTournament2004 : SimpleTCPPack
         new Effect("Octojump", "octojump"){Price = 2, Description = "Everyone can jump in the air 8 times!", Duration=60 },
         new Effect("Winner Deals Half Damage", "winner_half_dmg"){Price = 3, Description = "The player or team in first place only deals half damage!", Duration=60},
         new Effect("Red Light, Green Light", "red_light_green_light"){Price = 5, Description = "The light randomly changes between Red and Green!  Move while the light is red and... KABOOM!", Duration=60},
+        new Effect("Massive Momentum", "massive_momentum"){Price = 3, Description = "All damage imparts significantly more momentum to the target!", Duration=60},
         new Effect("Select Announcer Voice", "announcer")
         {
             Parameters = announcerList,

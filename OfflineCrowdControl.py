@@ -124,6 +124,7 @@ def pickEffect():
     effects.append(("reset_onslaught_links",None))
     effects.append(("winner_half_dmg",None))
     effects.append(("red_light_green_light",None))
+    effects.append(("massive_momentum",None))
 
     return random.choice(effects)
 
