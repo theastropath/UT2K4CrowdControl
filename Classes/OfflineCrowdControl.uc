@@ -13,7 +13,7 @@ struct EffectConfig {
 var config String defaultMutatorName;
 var config int effectFrequency;
 var config float effectChance;
-var config EffectConfig effects[75];
+var config EffectConfig effects[100];
 var config String botNames[75];
 
 var int effectCountdown;
@@ -160,7 +160,7 @@ function int RandomOfflineEffects()
     local string viewer;
     local int duration,quantity;
     
-    local EffectConfig enabledEffects[50];
+    local EffectConfig enabledEffects[100];
     local int i,j;
     
     // only 2% chance for an effect, each second
@@ -740,6 +740,12 @@ defaultproperties
     effects(50)=(EffectName="thorns",quantityMin=0,quantityMax=0,durationMin=10,durationMax=60,enabled=true)
     effects(51)=(EffectName="octojump",quantityMin=0,quantityMax=0,durationMin=10,durationMax=60,enabled=true)
     effects(52)=(EffectName="pint_sized",quantityMin=0,quantityMax=0,durationMin=10,durationMax=60,enabled=true)
+    effects(53)=(EffectName="thrust",quantityMin=0,quantityMax=0,durationMin=30,durationMax=60,enabled=true)
+    effects(54)=(EffectName="silent_hill",quantityMin=0,quantityMax=0,durationMin=30,durationMax=60,enabled=true)
+    effects(55)=(EffectName="bouncy_castle",quantityMin=0,quantityMax=0,durationMin=30,durationMax=60,enabled=true)
+    effects(56)=(EffectName="winner_half_dmg",quantityMin=0,quantityMax=0,durationMin=30,durationMax=60,enabled=true)
+    effects(57)=(EffectName="red_light_green_light",quantityMin=0,quantityMax=0,durationMin=30,durationMax=60,enabled=true)
+    effects(58)=(EffectName="massive_momentum",quantityMin=0,quantityMax=0,durationMin=30,durationMax=60,enabled=true)
     botNames(0)="Jim"
     botNames(1)="James"
     botNames(2)="Jeremy"
