@@ -4,16 +4,21 @@ var float damageMult;
 
 function int NetDamage( int OriginalDamage, int Damage, pawn injured, pawn instigatedBy, vector HitLocation, out vector Momentum, class<DamageType> DamageType )
 {
-    if ( NextGameRules != None )
-        return NextGameRules.NetDamage( OriginalDamage,Damage,injured,instigatedBy,HitLocation,Momentum,DamageType );
-    
+    local int NewDamage;
+
     if (!PawnIsWinning(instigatedBy)){
-        return Damage;
+        NewDamage = Damage;
+    } else {
+        NewDamage = Damage * damageMult;
     }
+
+    if ( NextGameRules != None )
+        return NextGameRules.NetDamage( OriginalDamage,NewDamage,injured,instigatedBy,HitLocation,Momentum,DamageType );
+    
 
     //Level.Game.Broadcast(self,"Pawn "$instigatedBy$" is winning, so dealing reduced damage ("$Damage$" reduced to "$(Damage * damageMult)$")");
 
-    return Damage * damageMult;
+    return NewDamage;
 }
 
 function bool PawnIsWinning(pawn piw)

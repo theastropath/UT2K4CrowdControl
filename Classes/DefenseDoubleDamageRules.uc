@@ -8,10 +8,8 @@ function int NetDamage( int OriginalDamage, int Damage, pawn injured, pawn insti
     local xBombingRun brGame;
     local ASGameInfo asGame;
     local CrowdControlBombFlag ccBomb;
-    local int attackTeamId;
+    local int attackTeamId, NewDamage;
 
-    if ( NextGameRules != None )
-        return NextGameRules.NetDamage( OriginalDamage,Damage,injured,instigatedBy,HitLocation,Momentum,DamageType );
     
     attackTeamId=-1;
     
@@ -29,14 +27,17 @@ function int NetDamage( int OriginalDamage, int Damage, pawn injured, pawn insti
     }
 
     if (attackTeamId==-1){
-        return Damage;
+        NewDamage = Damage;
+    } else if (bSameTeam!=(attackTeamId==InstigatedBy.PlayerReplicationInfo.Team.TeamIndex)){
+        NewDamage = Damage;
+    } else {
+        NewDamage = Damage * damageMult;
     }
 
-    if (bSameTeam!=(attackTeamId==InstigatedBy.PlayerReplicationInfo.Team.TeamIndex)){
-        return Damage;
-    }
+    if ( NextGameRules != None )
+        return NextGameRules.NetDamage( OriginalDamage,NewDamage,injured,instigatedBy,HitLocation,Momentum,DamageType );
 
-    return Damage * damageMult;
+    return NewDamage;
 }
 
 //

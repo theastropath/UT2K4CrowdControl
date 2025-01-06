@@ -13,6 +13,10 @@ function int NetDamage( int OriginalDamage, int Damage, pawn injured, pawn insti
         Momentum = Normal(injured.Location - instigatedBy.Location) * Damage * 2;
     }
     Momentum = Momentum * momentumMult;
+
+    if ( NextGameRules != None )
+        return NextGameRules.NetDamage( OriginalDamage,Damage,injured,instigatedBy,HitLocation,Momentum,DamageType );
+
     return Damage;
 }
 

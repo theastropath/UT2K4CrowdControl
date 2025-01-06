@@ -5,8 +5,6 @@ var() float ConversionRatio;
 function int NetDamage( int OriginalDamage, int Damage, pawn injured, pawn instigatedBy, vector HitLocation, out vector Momentum, class<DamageType> DamageType )
 {
     local vector newHitLoc,newMomentum;
-    if ( NextGameRules != None )
-        return NextGameRules.NetDamage( OriginalDamage,Damage,injured,instigatedBy,HitLocation,Momentum,DamageType );
 
     if ( (DamageType!=class'Thorns') && (InstigatedBy != Injured) && (InstigatedBy != None) && (InstigatedBy.Health > 0) 
         && (InstigatedBy.PlayerReplicationInfo != None) && (Injured.PlayerReplicationInfo != None) 
@@ -23,6 +21,10 @@ function int NetDamage( int OriginalDamage, int Damage, pawn injured, pawn insti
             class'Thorns'
         );
     }
+
+    if ( NextGameRules != None )
+        return NextGameRules.NetDamage( OriginalDamage,Damage,injured,instigatedBy,HitLocation,Momentum,DamageType );
+
     return Damage;
 }
 

@@ -2348,12 +2348,12 @@ function int StartVampireMode(string viewer, int duration)
     }
 
     //Check if game rule is already in place, fail if it is
-    if (IsGameRuleActive(class'VampireGameRules')){
+    if (IsGameRuleActive(class'WorkingVampireGameRules')){
         return TempFail;
     }
 
     //Attempt to add the game rules, fail if it doesn't for some reason
-    if (!AddNewGameRule(class'VampireGameRules')){
+    if (!AddNewGameRule(class'WorkingVampireGameRules')){
         return TempFail;
     }
 
@@ -3242,7 +3242,7 @@ function int StopCrowdControlEvent(string code, optional bool bKnownStop)
             break;
         case "vampire_mode":
             if (bKnownStop || vampireTimer > 0){
-                RemoveGameRule(class'VampireGameRules');
+                RemoveGameRule(class'WorkingVampireGameRules');
                 Broadcast("You no longer feed on the blood of others...");
                 vampireTimer=0;
             }
