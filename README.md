@@ -26,13 +26,7 @@ Campaign support for Crowd Control (including Simulated Crowd Control or the Ran
 
 Locate your UT2004.ini file in the System directory and open it.
 
-Find the line that starts with "SinglePlayerMenuClass=" and change it to
-
-```
-SinglePlayerMenuClass=UT2k4CrowdControl.UT2K4SPMutator_Main
-```
-
-Next, find the line that starts with "GUIController=" and change it to
+Find the line that starts with "GUIController=" and change it to
 
 ```
 GUIController=UT2k4CrowdControl.UT2K4GUIControllerMutator
@@ -40,10 +34,9 @@ GUIController=UT2k4CrowdControl.UT2K4GUIControllerMutator
 
 and you should be able to create a new save in the Single Player menu and start playing Crowd Control!
 
-If you want to revert to the normal single player campaign, you can change those lines back to:
+If you want to revert to the normal single player campaign, you can change that line back to:
 
 ```
-SinglePlayerMenuClass=GUI2K4.UT2K4SP_Main
 GUIController=GUI2K4.UT2K4GUIController
 ```
 
