@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using ConnectorLib.SimpleTCP;
 using CrowdControl.Common;
-using CrowdControl.Games.Packs;
 using ConnectorType = CrowdControl.Common.ConnectorType;
 
 namespace CrowdControl.Games.Packs.UnrealTournament2004;
 
-public class UnrealTournament2004 : SimpleTCPPack
+public class UnrealTournament2004 : SimpleTCPPack<SimpleTCPServerConnector>
 {
     public override string Host => "0.0.0.0";
 
@@ -16,7 +14,7 @@ public class UnrealTournament2004 : SimpleTCPPack
 
     public UnrealTournament2004(UserRecord player, Func<CrowdControlBlock, bool> responseHandler, Action<object> statusUpdateHandler) : base(player, responseHandler, statusUpdateHandler) { }
 
-    public override Game Game { get; } = new(999, "Unreal Tournament 2004", "UnrealTournament2004", "PC", ConnectorType.SimpleTCPConnector);
+    public override Game Game { get; } = new("Unreal Tournament 2004", "UnrealTournament2004", "PC", ConnectorType.SimpleTCPServerConnector);
 
     //Weapon list
     private static readonly ParameterDef weaponList = new("Weapons", "weapons",
@@ -46,11 +44,11 @@ public class UnrealTournament2004 : SimpleTCPPack
 
     //Announcer List
     private static readonly ParameterDef announcerList = new("Announcer", "announcer",
-        new Parameter("Male Announcer", "UnrealGame.MaleAnnouncer"),
-        new Parameter("Female Announcer", "UnrealGame.FemaleAnnouncer"),
-        new Parameter("UT2003 Announcer", "UnrealGame.ClassicAnnouncer"),
-        new Parameter("UT99 Announcer", "UnrealGame.UTClassicAnnouncer"),
-        new Parameter("Sexy Female Announcer", "UnrealGame.SexyFemaleAnnouncer")
+        new Parameter("Male Announcer", "MaleAnnouncer"),
+        new Parameter("Female Announcer", "FemaleAnnouncer"),
+        new Parameter("UT2003 Announcer", "ClassicAnnouncer"),
+        new Parameter("UT99 Announcer", "UTClassicAnnouncer"),
+        new Parameter("Sexy Female Announcer", "SexyFemaleAnnouncer")
     );
 
     public override EffectList Effects { get; } = new Effect[]

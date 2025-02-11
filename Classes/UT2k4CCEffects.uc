@@ -2919,6 +2919,10 @@ simulated function int SetAllPlayerAnnouncerVoice(string viewer, string announce
         return TempFail;
     }
     voiceName="";
+
+    //For reasons, the announcer name doesn't include the package name, so attach it here
+    announcer = "UnrealGame."$announcer;
+
     VoiceClass = class<AnnouncerVoice>(DynamicLoadObject(announcer,class'Class'));
 
     foreach AllActors(class'PlayerController',pc){

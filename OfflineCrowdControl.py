@@ -62,11 +62,11 @@ def randomWeapon():
 
 def randomAnnouncer():
     announce = []
-    announce.append('UnrealGame.MaleAnnouncer')
-    announce.append('UnrealGame.FemaleAnnouncer')
-    announce.append('UnrealGame.ClassicAnnouncer')
-    announce.append('UnrealGame.UTClassicAnnouncer')
-    announce.append('UnrealGame.SexyFemaleAnnouncer')
+    announce.append('MaleAnnouncer')
+    announce.append('FemaleAnnouncer')
+    announce.append('ClassicAnnouncer')
+    announce.append('UTClassicAnnouncer')
+    announce.append('SexyFemaleAnnouncer')
 
     return random.choice(announce)
 

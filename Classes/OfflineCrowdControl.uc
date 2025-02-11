@@ -145,11 +145,11 @@ function String PickRandomWeapon(){
 
 function String PickRandomAnnouncer(){
     switch(Rand(5)){
-        case(0): return "UnrealGame.MaleAnnouncer";
-        case(1): return "UnrealGame.FemaleAnnouncer";
-        case(2): return "UnrealGame.ClassicAnnouncer";
-        case(3): return "UnrealGame.UTClassicAnnouncer";
-        case(4): return "UnrealGame.SexyFemaleAnnouncer";
+        case(0): return "MaleAnnouncer";
+        case(1): return "FemaleAnnouncer";
+        case(2): return "ClassicAnnouncer";
+        case(3): return "UTClassicAnnouncer";
+        case(4): return "SexyFemaleAnnouncer";
     }
     return "";
 }
