@@ -33,7 +33,7 @@ function Init(CrowdControl cc, string addr)
 {
     
     //UPDATE VERSION EACH RELEASE!
-    version = "v1.2.2";
+    version = "v1.2.3";
     
     ccModule = cc;
     crowd_control_addr = addr; 
